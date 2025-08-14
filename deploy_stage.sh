@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # git clone http://gitlab-ci-token:5pW_dfANjs-gD4aHPoXu@gitlab.testbird.com/vpn/sonic_secure_x2.git
-project=download_mix_stage
+project=server-alter-stage
 docker_path=/data/server-alter
 ver=$1
 ver=${ver:-"0.0.1"}
