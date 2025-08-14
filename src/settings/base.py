@@ -126,7 +126,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'apps.common.replace_middleware.EncryptMiddleware',
+    # 'apps.common.replace_middleware.EncryptMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
