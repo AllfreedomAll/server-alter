@@ -1,0 +1,145 @@
+{% extends base_template %}
+{% load i18n l10n %}
+
+{% load xadmin_tags %}
+{% load crispy_forms_tags %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+        <li><a href="{% url 'xadmin:index' %}">{% trans 'Home' %}</a></li>
+        <li><a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a></li>
+        <li>Sync Server</li>
+    </ul>
+{% endblock %}
+
+{% block nav_title %}{% if model_icon %}<i class="{{ model_icon }}"><sub class="fa fa-pencil"></sub></i> {% endif %}
+    Batch change m2m
+{% endblock %}
+{% block content %}
+    <iframe name="if" id="if" style="display: none;"></iframe>
+    <form class="exform" action="/change_m2m/" method="post" id="changeform" target="if">
+        {% csrf_token %}
+        <div
+                class="form-container row clearfix">
+            <div
+                    class="formColumn column form-column full col col-sm-12 form-horizontal" span="12" horizontal>
+                <div class="panel panel-default fieldset unsort no_title">
+                    <div class="panel-heading"><i class='icon fa fa-chevron-up chevron'></i>
+                        <h3 class="panel-title"></h3></div>
+                    <div class="panel-body ">
+
+                        <div id="xxx" class="form-group">
+                            <label for="id_original" class="control-label ">
+                                修改的obj
+                            </label>
+                            <div class="controls ">
+                                {% for obj in queryset %}
+                                    <tr id='original'>
+                                    <input value='{{ obj.id }}' name="original_pk">
+                                {% endfor %}
+                                <input type="hidden" name="original_field" value="{{ or_label }}">
+                            </div>
+                        </div>
+                        {% for j in m2m %}
+                            <div id="div_id_{{ j.f_name }}" class="form-group">
+                                <label for="id_{{ j.f_name }}" class="control-label ">
+                                    {{ j.verbose_name }}
+                                </label>
+                                <div class="controls ">
+                                    <label class="btn btn-info btn-xs"><input type="checkbox"
+                                                                              class="batch-field-checkbox"
+                                                                              name="_batch_change_fields"
+                                                                              value="{{ j.f_name }}:&{{ j.db_name }}">
+                                        Change this field</label>
+                                    <div class="control-wrap" id="id_{{ j.f_name }}_wrap_container">
+                                        <div class="selector select-transfer">
+                                            <div class="selector-available"><p class="title">
+                                                Available {{ j.verbose_name }}</p>
+                                                <div class="input-group input-group-sm selector-filter"><span
+                                                        class="input-group-addon"><i class="fa fa-search"></i></span>
+                                                    <input
+                                                            class="form-control" type="text"
+                                                            id="id_{{ j.f_name }}_input"></div>
+                                                <select multiple="multiple" id="id_{{ j.f_name }}_form">
+                                                    {% for k in j.qs %}
+                                                        <option value="{{ k.id }}">{{ k }}</option>
+                                                    {% endfor %}
+                                                </select> <a class="btn btn-default selector-chooseall"
+                                                             title="Click to choose all at once.">Choose all</a></div>
+                                            <ul class="selector-chooser">
+                                                <li><a class="btn btn-default btn-sm selector-add" title="Choose"><i
+                                                        class="fa fa-plus"></i></a></li>
+                                                <li><a class="btn btn-default btn-sm selector-remove" title="Remove"><i
+                                                        class="fa fa-minus"></i></a></li>
+                                            </ul>
+                                            <div class="selector-chosen"><p class="title">
+                                                Chosen {{ j.verbose_name }}</p> <select
+                                                    multiple="multiple" class="" id="id_{{ j.f_name }}"
+                                                    name={{ j.f_name }}>
+
+                                            </select> <a class="btn btn-default selector-clearall"
+                                                         title="Click to remove all chosen at once.">Remove all</a>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="alert alert-success" role="alert" style="display:none;" id="import-result-alert">修改中...
+        </div>
+            <button class="btn btn-success" type="button" id="submit_upload_b" style="display:block;"
+                    onclick="get_import_result()"> 修改
+            </button>
+            <a href="{% url opts|admin_urlname:'changelist' %}">
+                <button class="btn btn-success" type="button" id="reload" style="display:none;"> 关闭
+                </button>
+            </a>
+    </form>
+
+
+    <script>
+        $()
+
+        function get_import_result() {
+            document.getElementById('import-result-alert').style.display = 'block'
+            document.getElementById('reload').style.display = 'none'
+            document.getElementById('submit_upload_b').style.display = 'none'
+            $("#changeform").submit();
+            var t = setInterval(function () {
+                //获取iframe标签里body元素里的文字。
+                var word = $("iframe[name='if']").contents().find("body").text();
+                console.log(word);
+                if (word != "") {
+                    var i = JSON.parse(word);
+                    console.log(i);
+                    if (i.code==1){
+                        $('#import-result-alert').text('修改成功')
+                        document.getElementById('reload').style.display = 'block'
+                        clearInterval(t);   //清除定时器
+                    }
+                    else{
+                        alert(
+                            i.msg
+                        )
+                    }
+                    document.getElementById('reload').style.display = 'block'
+                    clearInterval(t);   //清除定时器
+                }
+            }, 1000);
+        }
+
+    </script>
+{% endblock %}
+{% block extrabody %}
+
+{% endblock %}

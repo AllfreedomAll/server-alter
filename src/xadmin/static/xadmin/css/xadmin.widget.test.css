@@ -1,0 +1,21 @@
+.property-selector > .control-group > .controls {
+  margin-left: 0px;
+}
+.span12 > .control-group > .control-label {
+    width: 10px;
+    float: left;
+}
+.span12 > .control-group > .controls{
+  margin-left: 100px;
+  background-color: whitesmoke;
+  padding: 15px !important;
+}
+.select2-choice > span {
+  width: 50px;
+}
+.btn-group {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 10px;
+}

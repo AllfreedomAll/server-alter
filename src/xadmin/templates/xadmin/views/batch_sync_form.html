@@ -1,0 +1,101 @@
+{% extends base_template %}
+{% load i18n l10n %}
+
+{% load xadmin_tags %}
+{% load crispy_forms_tags %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumb">
+        <li><a href="{% url 'xadmin:index' %}">{% trans 'Home' %}</a></li>
+        <li><a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a></li>
+        <li>Sync Server</li>
+    </ul>
+{% endblock %}
+
+{% block nav_title %}{% if model_icon %}<i class="{{ model_icon }}"><sub class="fa fa-pencil"></sub></i> {% endif %}
+    Sync server
+{% endblock %}
+
+
+{% block content %}
+    <iframe name="if" id="if" style="display: none;"></iframe>
+    <form class="exform" action="/sync_ss_user/" method="post" id="syncform" target="if">
+        {% csrf_token %}
+
+
+        <div class="form-actions well well-sm" style="width:98%;height:400px;overflow-y:scroll;overflow-x:hidden;">
+            <div>
+
+                <table class="table" id="result-table">
+                    <thead >
+                    <tr>
+                        <th>Server IP</th>
+                        <th>Sync result</th>
+                        <th>Message</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for obj in queryset %}
+                        <tr id ='original'>
+                            <td>{{ obj.ip }}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <input type="hidden" value={{ obj.ip }} name="server_ip">
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <div class="alert alert-success" role="alert" style="display:none;" id="import-result-alert">同步中...</div>
+            <button class="btn btn-success" type="button" id="submit_upload_b" style="display:block;"
+                    onclick="get_import_result()"> 同步
+            </button>
+            <a href="{% url opts|admin_urlname:'changelist' %}">
+                <button class="btn btn-success" type="button" id="reload" style="display:none;"> 关闭
+                </button>
+            </a>
+    </form>
+    <script>
+        $()
+        function get_import_result() {
+            document.getElementById('import-result-alert').style.display = 'block'
+            document.getElementById('reload').style.display = 'none'
+            document.getElementById('submit_upload_b').style.display = 'none'
+            $("#syncform").submit();
+            var t = setInterval(function () {
+                //获取iframe标签里body元素里的文字。
+                var word = $("iframe[name='if']").contents().find("body").text();
+                console.log(word);
+                if (word != "") {
+                    var i = JSON.parse(word);
+                    for(var server_ip in i){
+                        var result =  i[server_ip]['sync_result']
+                        var msg =  i[server_ip]['message']
+
+                        if (i[server_ip]['sync_result'])
+                            {
+                                var tr = $("<tr class='success'></tr>")}
+                        else
+                            {
+                                var tr = $("<tr class='danger'></tr>")};
+                        var td_ip = $("<td>"+server_ip+"</td>");
+                        var td_result = $("<td>"+result+"</td>");
+                        var td_msg = $("<td>"+msg+"</td>");
+                        tr.append(td_ip)
+                        tr.append(td_result)
+                        tr.append(td_msg)
+                        $('#original').remove();
+                        document.getElementById('import-result-alert').style.display = 'none'
+                        $('#result-table').append(tr)
+                    };
+                    document.getElementById('reload').style.display = 'block'
+                    clearInterval(t);   //清除定时器
+                }
+            }, 1000);
+        }
+
+    </script>
+{% endblock %}

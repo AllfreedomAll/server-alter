@@ -1,0 +1,142 @@
+{% load i18n %}
+<div class="btn-group export">
+    <a class="dropdown-toggle btn btn-default btn-sm" data-toggle="dropdown" href="#">
+        <i class="fa fa-upload"></i> Import <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+        <li><a data-toggle="modal" data-target="#export-modal-import" onclick="get_import_type(this)" name="csv"><i class="fa fa-file-o"></i> 导入
+            Csv</a></li>
+    </ul>
+    <script>
+        function get_import_type(th) {
+            $('#import_title').text($(th).text())
+            $('#submit_upload').attr('name',$(th).attr('name'))
+            $("input[name='imp_type']").val($(th).attr('name'))
+            $('#export-modal-import').modal({
+                backdrop:'static'
+            })
+
+
+        }
+
+        function fileChange(target) {
+//检测上传文件的类型
+            var filepath = document.all.submit_upload.value;
+            var ext, idx;
+            if (filepath == '') {
+                document.getElementById('submit_upload_b').style.display='none';
+                alert("请选择需要上传的文件!");
+                return;
+            }
+            else {
+                idx = filepath.lastIndexOf(".");
+                if (idx != -1) {
+                    ext = filepath.substr(idx).toUpperCase();
+                    if ($(target).attr('name') == 'excel'){
+                        if (ext != '.XLS' && ext != '.XLSX') {
+                            document.getElementById('submit_upload_b').style.display='none';
+                            alert("只能上传 .xls 类型的文件!");
+                            return;
+                        }
+                        else{
+                            document.getElementById('submit_upload_b').style.display='inline';
+                            return;
+                        }
+                    }
+                    else{
+                        if (ext != '.CSV' ) {
+                            document.getElementById('submit_upload_b').style.display='none';
+                            alert("只能上传 .csv 类型的文件!");
+                            return;
+                        }
+                        else{
+                            document.getElementById('submit_upload_b').style.display='inline';
+                            return;
+                        }
+                    }
+
+                }
+                else {
+                    document.getElementById('submit_upload_b').style.display='none';
+                    alert("请上传适合的文件类型的文件!");
+                    return;
+                }
+            }
+        }
+
+        function get_import_result() {
+            $("#imp").submit();
+            document.getElementById('import-result-alert').style.display='block'
+            document.getElementById('submit_upload').style.display='none'
+            document.getElementById('submit_upload_b').style.display='none'
+            var t = setInterval(function() {
+                //获取iframe标签里body元素里的文字。
+                console.log("获取结果中")
+                var word = $("iframe[name='tg']").contents().find("body").text()
+                console.log(word)
+                if (word != "") {
+                    word = JSON.parse(word)
+                    console.log(word)
+                    var ret_html = "<p>"+"成功:"+word[0].length+"失败:"+word[1].length+"</p>"
+                    for (let index = 0; index < word[1].length; index++) {
+                        ret_html+="<p>"+word[1][index]+"</p>"
+                    }
+                    $('#import-result-alert').html(ret_html)
+                    clearInterval(t);   //清除定时器
+                }else{
+                    word = $('#import-result-alert').text()
+                    if (word.length==6){
+                        word="导入中"
+                    }else{
+                        word=word+"."
+                    }
+
+                    $('#import-result-alert').text(word)
+
+                }
+
+            }, 1000);
+
+
+        }
+
+        function close_reset() {
+            if(document.getElementById('import-result-alert').style.display=='block'){
+                location.reload()
+            }
+        }
+    </script>
+
+    <iframe name="tg" id="tg" style="display: none;"></iframe>
+
+    <div id="export-modal-import" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id='imp' method="post" action="/import_data/" target="tg" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="close_reset()">×</button>
+                        <h4 class="modal-title" id="import_title">Import</h4>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" onchange="fileChange(this)"  id="submit_upload">
+
+
+                        <input type="hidden" name="imp_type">
+                        <div class="alert alert-success" role="alert" style="display:none;" id="import-result-alert">导入中</div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="close_reset()">{% trans "Close" %}</button>
+                        <button class="btn btn-success" type="button" id="submit_upload_b" style="display:none;" onclick="get_import_result()"> 导入
+                        </button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dalog -->
+    </div><!-- /.modal -->
+
+
+</div>
+
+

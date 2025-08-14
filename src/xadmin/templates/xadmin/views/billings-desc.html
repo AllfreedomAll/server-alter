@@ -1,0 +1,451 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+
+
+
+{% block content-nav %}
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs" style="margin-bottom: 10px;">
+        <style>
+            #xadmin-form > ul {
+                margin-right: 20px;
+            }
+
+            #xadmin-form > ul > li {
+                margin-right: 20px;
+            }
+
+            #xadmin-form ul.dropdown-menu {
+                left: 0;
+                top: 120%;
+            }
+
+            #xadmin-form .dropdown-submenu .popover {
+                left: 0;
+                top: 120%;
+            }
+
+            #xadmin-form .search-group {
+                top: 8px;
+            }
+
+            #xadmin-form .search-group .btn-primary + span {
+                left: 10px;
+            }
+
+            #filter-arr nav button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
+            #filter-arr nav > span.remove-form {
+                border: 1px solid #000;
+                padding: 5px;
+                margin: 0 15px;
+                cursor: pointer;
+                display: inline-block;
+            }
+
+            #filter-arr nav:first-of-type span.remove-form {
+                display: none;
+            }
+
+
+        </style>
+        <div class="navbar-header">
+            <a class="navbar-brand" data-toggle="collapse" data-target="#top-nav .navbar-collapse">
+                订单统计
+            </a>
+        </div>
+
+        <!-- 筛选条件 -->
+
+        <form id="xadmin-form">
+            <!-- 搜索国家 -->
+            <ul class="nav navbar-nav">
+                <li class="dropdown-submenu">
+                    <a>Country_code</a>
+                    <div class="popover ">
+                        <div class="arrow"></div>
+                        <h3 class="popover-title">
+                            Search country_code
+                        </h3>
+                        <div class="popover-content" style="width: 250px">
+                            <div class="input-group">
+                                <input id="country-code-val" class="input-char form-control" type="text"
+                                       placeholder="Enter country_code…">
+                                <span class="input-group-btn" id="country-code">
+                                                    <button class="btn btn-success" type="button"><i
+                                                            class="fa fa-search"></i></button>
+                                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+
+                <li class="dropdown-submenu">
+                    <a>Channel</a>
+
+                    <ul class="dropdown-menu" data-type="channel">
+                        <li value="1"><a href="javascript:;">ios</a></li>
+                        <li value="0"><a href="javascript:;">android</a></li>
+                    </ul>
+
+                </li>
+
+                <li class="dropdown-submenu">
+                    <a>SKU</a>
+                    <ul class="dropdown-menu" data-type="sku">
+                        {% for i in sku %}
+                            <li value=""><a href="javascript:;">{{ i }}</a></li>
+                        {% endfor %}
+
+                    </ul>
+                </li>
+
+                <li class="dropdown-submenu">
+                    <a>app</a>
+                    <ul class="dropdown-menu" data-type="app">
+                        <li value=""><a href="javascript:;">pro</a></li>
+                        <li value=""><a href="javascript:;">lite</a></li>
+                    </ul>
+                </li>
+
+
+            </ul>
+            <div class="input-group search-group ">
+                <input id="startdate" name="dtBegin" class=" multiple-form-stop form-control date-picker"
+                       placeholder="Start Time" style="width: 100px">
+                <span class="input-group-addon">to</span>
+                <input id="enddate" name="dtEnd" class=" multiple-form-stop form-control date-picker"
+                       placeholder="End Time" style="width: 100px">
+                <span class="input-group-addon">:</span>
+                <input id="period" name="period" class=" multiple-form-stop form-control " placeholder="Period"
+                       style="width: 50px">
+                <span class="input-group-btn btn btn-primary" id="submit-form">Submit</span>
+                {#                <span class="input-group-btn btn btn-primary" id="add-form">Add form</span>#}
+            </div>
+        </form>
+
+    </div>
+
+    <!-- fiter标签组 -->
+    <ul id="filter-arr" style="padding: 0px 10px">
+        <nav style="float: inherit;display: block;padding: 0px 10px;margin-bottom: 2px;"
+             class="navbar-header filter-item breadcrumb" data-value=0>
+
+        </nav>
+    </ul>
+
+{% endblock %}
+
+{% block content %}
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div class="bs-example" data-example-id="condensed-table">
+        <table class="table table-hover table-condensed" id="data-table">
+
+        </table>
+    </div>
+    <div id="main" style="width: 1200px;height:500px; "></div>
+
+
+
+{% endblock %}
+
+
+{% block extrabody %}
+    <script type="text/javascript">
+        $(function () {
+            var filterArr = [
+                {
+                    countrycode: [],
+                    channel: [],
+                    sku: [],
+                    app: [],
+                }
+            ]
+            var filterIndex = 0, filterForm = filterArr[filterIndex]
+
+            $(".date-picker").datepicker({
+                autoclose: true,
+                clearBtn: true,
+                todayBtn: "linked",
+                todayHighlight: true,
+                format: "yyyy-mm-dd"
+            });
+
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $('body').on('click', '.c-remove', function () {
+                //删除改标签时，目标表单会移至当前
+                filterIndex = $(this).parent('nav').index()
+                filterForm = filterArr[filterIndex]
+                var type = $(this).attr('data-type')
+                var val = $(this).text()
+                filterForm[type].splice($.inArray(val, filterForm[type]), 1)
+                filterArr[filterIndex] = filterForm
+                setButton()
+            });
+
+            $('#country-code').click(function () {
+                var country_code = $('#country-code-val').val();
+                addButton(country_code, 'countrycode')
+            })
+
+
+            $('#xadmin-form ul ul a').click(function () {
+                addButton(this.text, $(this).parents('ul').attr('data-type'))
+            })
+
+            //设置filter按钮
+            function setButton() {
+                var dom = '<button class="remove-form pull-right btn-danger btn-xs navbar-btn">删除该表单</button>'
+                for (let i in filterForm) {
+                    if (filterForm[i].length > 0) {
+                        dom += i + ":"
+                        if (filterForm[i] instanceof Array) {
+                            for (let v in filterForm[i]) {
+                                dom += '<button data-type=' + i +
+                                    ' type="button" class="btn btn-primary btn-xs navbar-btn  c-remove"style="margin-top: 8px;">' + filterForm[i][v] +
+                                    '</button>'
+                            }
+                        } else {
+                            dom += '<button data-type=' + i +
+                                ' type="button" class="btn btn-primary btn-xs navbar-btn  c-remove "style="margin-top: 8px;">' + filterForm[i] +
+                                '</button>'
+                        }
+                    }
+                }
+                $('#filter-arr>nav').css({'background': 'transparent'}).eq(filterIndex).html(dom).css({'background': 'rgba(0,0,0,0.2)'})
+            }
+
+            //添加筛选类别，可复选
+            function addButton(str, type) {
+
+                if (filterForm[type].indexOf(str) == -1) {
+                    filterForm[type].push(str)
+                    filterArr[filterIndex] = filterForm
+                    setButton()
+                } else {
+                    return false
+                }
+            }
+
+            //设置表格
+            function setTable(data) {
+                var t_header_data = data.columns
+                var t_index_data = data.index
+                var t_body_data = data.data
+
+                //设置theader
+                var t_header_html = '<thead><tr><th>datetime</th>';
+                for (var i = 0; i < t_header_data.length; i++) {
+                    t_header_html += "<th>" + t_header_data[i] + "</th>";
+                }
+                t_header_html += "</tr></thead>";
+                //设置tbody
+                var t_bady_html = "<tbody>";
+                for (var j = 0; j < t_index_data.length; j++) {
+                    t_bady_html += "<tr><th>";
+                    t_bady_html += t_index_data[j] + '</th>';
+                    for (var i = 0; i < t_body_data[j].length; i++) {
+                        if (i >= 8) {
+                            t_bady_html += "<td>" + (t_body_data[j][i] * 100).toFixed(3) + '%' + "</td>"
+                        } else {
+                            t_bady_html += "<td>" + t_body_data[j][i] + "</td>";
+                        }
+                    }
+                    t_bady_html += "</tr>";
+                }
+                t_bady_html += '</tbody>';
+                $('#data-table').html(t_header_html + t_bady_html)
+
+            }
+
+            //检索相关数据,提交
+            $('#submit-form').click(function () {
+                if ($('#startdate').val().length == 0 || $('#enddate').val().length == 0) {
+                    alert('时间不能为空')
+                } else {
+                    var data_req = {
+                        data: filterArr,
+                        startdate: $('#startdate').val(),
+                        enddate: $('#enddate').val(),
+                        period: $('#period').val()
+                    }
+                    var option = {
+                        title: {
+                            text: '订单统计'
+                        },
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data: []
+                        },
+                        grid: {
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        toolbox: {
+                            feature: {
+                                saveAsImage: {}
+                            }
+                        },
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: []
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: []
+                    };
+
+                    console.log(data_req)
+                    $.ajax({
+                        url: '/get-billings-count/',
+                        contentType: "application/json;charset=utf-8",
+                        type: "post",
+                        dataType: "json",
+                        data: JSON.stringify(data_req),
+                        beforeSend: function (xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                        },
+                        success: function (data) {
+
+                            if (data.code == 0) {
+                                if ($.isEmptyObject(data.result[0])) {
+                                    alert('No result')
+                                } else {
+                                    var html_data = JSON.parse(data.result[0].html_json_str);
+                                    var img_data = JSON.parse(data.result[0].img_json_str);
+                                    console.log(img_data)
+
+                                    setEcharts(img_data, option);
+                                    setTable(html_data)
+                                }
+
+
+                            }
+
+                        }
+                    });
+                }
+
+            })
+
+            //添加对比form,暂时没用
+            $('#add-form').click(function () {
+                if ($('#filter-arr>nav:last-of-type').find('.c-remove').length == 0 && filterIndex != 0) {
+
+                    return false
+                } else {
+                    filterIndex++;
+                    filterArr[filterIndex] = {
+                        countrycode: [],
+                        channel: [],
+                        sku: [],
+                        app: [],
+                    }
+                    filterForm = filterArr[filterIndex]
+                    $('#filter-arr').append('<nav style="float: inherit;display: block;padding: 0px 10px;margin-bottom: 2px;" class="navbar-header breadcrumb"><button class="pull-right btn-success btn-xs">新表单创建成功</button></nav>')
+                    //多表单禁止选择项
+                    //if (filterArr.length > 1) {
+                    //   $('.multiple-form-stop').attr('disabled', true)
+                    //}
+                }
+            })
+
+            //删除对比form
+            $('#filter-arr').on('click', 'nav button.remove-form', function () {
+                var index = $(this).parent().index()
+                filterArr.splice(index, 1)
+
+                //如果只剩下最后一项，则清空nav内容，否则删除nav
+                if (filterArr.length == 0) {
+                    $(this).parent().empty()
+                    filterIndex = 0
+                    filterArr[0] = {
+                        countrycode: [],
+                        channel: [],
+                        sku: [],
+                        app: []
+                    }
+                } else {
+                    filterIndex--
+                    $(this).parent().remove()
+                }
+
+                if (filterIndex < 0) {
+                    filterIndex = 0
+                }
+
+                filterForm = filterArr[filterIndex]
+
+
+                if (filterArr.length == 1) {
+                    $('.multiple-form-stop').attr('disabled', false)
+                }
+            });
+
+            var myChart = echarts.init(document.getElementById('main'));
+
+
+            //设置图表
+            function setEcharts(data, option) {
+                var data_index = data.index
+                var data_columns = data.columns
+                var data_data = data.data
+                option.legend.data = data_index
+                option.xAxis.data = data_columns
+                for (var i = 0; i < data_data.length; i++) {
+                    option.series.push({
+                        name: data_index[i],
+                        type: 'line',
+                        stack: '总量',
+                        data: data_data[i]
+                    },)
+                }
+
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            };
+            //排序
+            var compare = function (obj1, obj2) {
+                if (obj1.date > obj2.date) {
+                    return 1;
+                } else if (obj1.date == obj2.date) {
+                    if (obj1.filter_str > obj2.filter_str) {
+                        return 1
+                    } else {
+                        return -1
+                    }
+                } else {
+                    return -1;
+                }
+
+            }
+
+        });
+    </script>
+
+
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="/static/xadmin/dist/echarts.min.js"></script>
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+{% endblock %}
+
+
+

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <div class="panel panel-info">
+        <div class="panel-heading ads_site_panel">
+            <h4 class="panel-title">
+
+                <label style="color: #0c0c0c">priority:</label><span class="ad_source_t" t="priority"></span>
+                <label style="color: #0c0c0c">name:</label><span class="ad_source_t" t="source_name">admob</span>
+                <label style="color: #0c0c0c">id:</label><span class="ad_source_t" t="ad_id"></span>
+                <label style="color: #0c0c0c">type:</label><span class="ad_source_t" t="ad_type"></span>
+
+                <button type="button" class="btn btn-success btn-sm show_info" style="margin-left: 10px">编辑
+                </button>
+                <button type="button" class="btn btn-success btn-sm copy_ads_source">复制
+                </button>
+                <button type="button" class="btn btn-danger btn-sm del_ads_source">删除
+                </button>
+
+
+            </h4>
+        </div>
+
+        <div class="panel-collapse in" style="height: auto;">
+            <div class="panel-body">
+                <div class="col-sm-6 col-md-6 col-lg-11 pull-right">
+                    <!-- ad_source 内容-->
+
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="is_enable" class="cus_ad_source" checked="checked">is_enable
+                        </label>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label>source_name</label>
+                        <select name="source_name" class=" cus_ad_source" title="source_name" data-actions-box="true">
+                            <option selected="" value="facebook">
+                                facebbok
+                            </option>
+                            <option selected="" value="admob">
+                                admob
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>priority</label>
+                        <input name="priority" class="form-control cus_ad_source" placeholder="priority">
+                    </div>
+
+
+                    <div class="form-group">
+                        <label>ad_type</label>
+                        <input name="ad_type" class="form-control cus_ad_source" placeholder="ad_type">
+                    </div>
+
+                    <div class="form-group">
+                        <label>ad_id</label>
+                        <input name="ad_id" class="form-control cus_ad_source" placeholder="ad_id">
+                    </div>
+
+                    <div class="form-group">
+                        <label>expire_time</label>
+                        <input name="expire_time" class="form-control cus_ad_source" placeholder="expire_time">
+                    </div>
+
+
+                    <!-- ad_control 内容-->
+
+                    <div class="form-group">
+                        <label><h4>ad_control</h4></label>
+                        <div class="btn-group btn-group-xs" role="group" style="margin-top: 5px;">
+                            <button type="button" class="btn btn-info ads-enable">enable
+                            </button>
+                            <button type="button" class="btn btn-danger ads-disable">
+                                disable
+                            </button>
+
+                        </div>
+                        <div class=" cus_ad_control" style="margin-left: 80px">
+                            <div class="form-group">
+                                <label>skip_ad_time</label>
+                                <input name="skip_ad_time" class="form-control" placeholder="skip_ad_time">
+                            </div>
+
+                            <div class="form-group">
+                                <label>style</label>
+                                <input name="style" class="form-control " placeholder="style">
+                            </div>
+                            <div class="form-group">
+                                <label>skip_range</label>
+                                <input name="skip_range" class="form-control" placeholder="skip_range">
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input name="icon_enable" type="checkbox" checked="checked">icon_enable
+                                </label>
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input name="title_enable" type="checkbox" checked="checked">title_enable
+                                </label>
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input name="desc_enable" type="checkbox" checked="checked">desc_enable
+                                </label>
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input name="img_enable" type="checkbox" checked="checked">img_enable
+                                </label>
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input name="cta_enable" type="checkbox" checked="checked">cta_enable
+                                </label>
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input name="skip_ads" type="checkbox" checked="checked">skip_ads
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</head>
+<body>
+
+</body>
+</html>

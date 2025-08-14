@@ -1,0 +1,582 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+{% block content-nav %}
+    <style>
+        .navbar-default {
+            background-color: #93c54b;
+            border-color: #3e3f3a;
+        }
+
+        li {
+            list-style-type: none;
+        }
+
+        .c_nav_header > li {
+            float: left;
+            width: 150px;
+            height: 65px;
+            list-style-type: none;
+            margin-left: 270px;
+        }
+
+        .filter_items {
+            padding-top: 20px;
+        {#padding-left: 50px;#}{#margin-left: 100px;#}
+
+        }
+
+        .c-form-control {
+            display: block;
+            width: 100%;
+            height: 39px;
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #3e3f3a;
+            background-color: #ffffff;
+            background-image: none;
+            border: 1px solid #dfd7ca;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        }
+
+        .nav-tabs > li > a {
+            background-color: #ffffff;
+            border-color: #ffffff;
+            color: #9e3333;
+        }
+    </style>
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs">
+
+
+        <ul class="c_nav_header">
+            <li class="filter_items" style="font-size: 17px;margin-left: -25px;">
+                <b>总用户：</b> <b class="text-primary">{{ data.user_info.a_u }}</b>
+            </li>
+            <li class="filter_items" style="font-size: 17px">
+                <b> 付费用户：</b><b class="text-primary">{{ data.user_info.v_u }}</b>
+            </li>
+            <li class="filter_items" style="font-size: 17px">
+                <b>试用用户：</b><b class="text-primary">{{ data.user_info.t_u }}</b>
+            </li>
+
+
+        </ul>
+
+
+    </div>
+{% endblock %}
+
+{% block content %}
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+
+
+    <div class="panel-body" id="panel-dnu">
+        <div class="bs-example" data-example-id="condensed-table">
+            <ul id="myTab" class="nav nav-tabs bar_tabs" role="tablist">
+                <li role="presentation" class="active"><a href="#today" id="today-tab" role="tab" data-toggle="tab"
+                                                          aria-expanded="true">当天</a>
+                </li>
+                <li role="presentation" class=""><a href="#3day" role="tab" id="3day-tab" data-toggle="tab"
+                                                    aria-expanded="false">3天</a>
+                </li>
+
+                <li role="presentation" class=""><a href="#7day" id="7day-tab" role="tab" data-toggle="tab"
+                                                    aria-expanded="false">7天</a>
+                </li>
+                <li role="presentation" class=""><a href="#all-day" id="allday-tab" role="tab" data-toggle="tab"
+                                                    aria-expanded="false">All</a>
+                </li>
+
+                <li role="presentation" class=""><a href="#custom" id="custom-tab" role="tab" data-toggle="tab"
+                                                    aria-expanded="false">自定义</a>
+                </li>
+
+
+                <div class="col-lg-2 ">
+                    <div class="input-group">
+                        <input id="cus-day" type="text" class="c-form-control">
+                        <span class="input-group-btn">
+                        <button id="latest_day" class="btn btn-default" type="button"
+                                style="line-height: 15px;">Go!</button>
+                      </span>
+                    </div><!-- /input-group -->
+                </div><!-- /.col-lg-6 -->
+
+
+            </ul>
+
+            <div id="DAUTabContent" class="tab-content">
+
+                <div role="tabpanel" class="tab-pane fade active in" id="today" aria-labelledby="profile-tab">
+                    <table id="today_table" class="table table-striped table-bordered  dt-responsive nowrap"
+                           cellspacing="0" width="100%">
+                        <thead>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+
+                </div>
+
+
+                <div role="tabpanel" class="tab-pane fade" id="3day" aria-labelledby="home-tab">
+                    <table id="day3" class="table table-striped table-bordered  dt-responsive nowrap"
+                           cellspacing="0" width="100%">
+                        <thead>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="7day" aria-labelledby="profile-tab">
+                    <table id="day7" class="table table-striped table-bordered  dt-responsive nowrap"
+                           cellspacing="0" width="100%">
+                        <thead>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="all-day" aria-labelledby="profile-tab">
+                    <table id="allday" class="table table-striped table-bordered  dt-responsive nowrap"
+                           cellspacing="0" width="100%">
+                        <thead>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="custom" aria-labelledby="profile-tab">
+                    <table id="cus-table" class="table table-striped table-bordered  dt-responsive nowrap"
+                           cellspacing="0" width="100%">
+                        <thead>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs" style="margin-bottom: 10px;">
+        <style>
+            .dataTables_length {
+                width: 40%;
+                float: left;
+            }
+        </style>
+        <div class="navbar-header">
+
+        </div>
+
+        <form id="xadmin-form" style="margin-top: 6px;margin-left: 15px;">
+            <!-- 时间选择 -->
+            <ul class="nav navbar-nav " style="margin-right: 10px;">
+                <div class="input-group search-group ">
+                    <input id="startdate" class=" multiple-form-stop form-control date-picker"
+                           placeholder="Start Time" style="width: 120px">
+                    <span class="input-group-addon">to</span>
+                    <input id="enddate" class=" multiple-form-stop form-control date-picker"
+                           placeholder="End Time" style="width: 120px">
+                    {#                    <span class="input-group-addon">:</span>#}
+                    {#                    <input id="period" name="period" class=" multiple-form-stop form-control " placeholder="Period"#}
+                    {#                           style="width: 50px">#}
+
+                    {#                <span class="input-group-btn btn btn-primary" id="add-form">Add form</span>#}
+                </div>
+            </ul>
+
+
+            <button type="button" class="btn btn-info" id="submit-form">Submit</button>
+        </form>
+
+
+    </div>
+    <div class="panel-body" id="panel-img">
+        <div class="bs-example" data-example-id="condensed-table">
+            <ul id="myTab" class="nav nav-tabs bar_tabs" role="tablist">
+                <li role="presentation" class="active"><a href="#pay-price" id="p-price-tab" role="tab"
+                                                          data-toggle="tab"
+                                                          aria-expanded="true">收入</a>
+                </li>
+                <li role="presentation" class=""><a href="#pay-count" role="tab" id="pay-count-tab" data-toggle="tab"
+                                                    aria-expanded="false">订单</a>
+                </li>
+
+                <li role="presentation" class=""><a href="#r-count" id="r-count-tab" role="tab" data-toggle="tab"
+                                                    aria-expanded="false">注册用户</a>
+                </li>
+
+            </ul>
+
+            <div id="img-body" class="tab-content">
+
+                <div role="tabpanel" class="tab-pane fade active in" id="pay-price" aria-labelledby="profile-tab">
+                    <div id="pay-price-img" style="width: 1100px;height:250px; left: -20px"></div>
+
+
+                </div>
+
+
+                <div role="tabpanel" class="tab-pane fade" id="pay-count" aria-labelledby="home-tab">
+                    <div id="pay-count-img" style="width: 1100px;height:250px; left: -20px"></div>
+
+
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="r-count" aria-labelledby="profile-tab">
+                    <div id="r-count-img" style="width: 1100px;height:250px; left: -20px"></div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
+
+
+{% block extrabody %}
+
+
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="/static/xadmin/dist/echarts.min.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="/static/xadmin/vendor/DataTables-1.10.20/js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+
+
+        var ppayChart = echarts.init(document.getElementById('pay-price-img'));
+        var cpayChart = echarts.init(document.getElementById('pay-count-img'));
+        var regChart = echarts.init(document.getElementById('r-count-img'));
+
+        $(".date-picker").datepicker({
+            autoclose: true,
+            clearBtn: true,
+            todayBtn: "linked",
+            todayHighlight: true,
+            format: "yyyy-mm-dd"
+        });
+
+
+        function switchpanl(obj) {
+            $(obj).addClass('btn-success');
+            if ($(obj).attr('id') === 'dnu-btn') {
+                $('#dau-btn').removeClass('btn-success')
+                $('#panel-dnu').removeClass('hidden')
+                $('#panel-dau').addClass('hidden')
+
+            }
+            ;
+            if ($(obj).attr('id') === 'dau-btn') {
+                $('#dnu-btn').removeClass('btn-success')
+
+                $('#panel-dau').removeClass('hidden')
+                $('#panel-dnu').addClass('hidden')
+            }
+            ;
+        }
+
+
+        $('#latest_day').click(function () {
+            $(this).addClass('disabled');
+            $(this).text('Loading');
+            var latest_day = $('#cus-day').val();
+            if (latest_day.length === 0 || parseFloat(latest_day).toString() === "NaN") {
+                alert('请输入数字');
+                $(this).removeClass('disabled');
+                $(this).text('Submit');
+                return
+            }
+            $.ajax({
+                url: './',
+                contentType: "application/json;charset=utf-8",
+                type: "post",
+                dataType: "json",
+                data: JSON.stringify({"ty": "go", "latest_day": latest_day}),
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                },
+                complete: function (data) {
+                    $('#latest_day').removeClass('disabled');
+                    $('#latest_day').text('Submit');
+                },
+                success: function (data) {
+                    $('#custom-tab').tab("show")
+                    {#TODO: 添加渠道后需要修改#}
+                    var cus = [
+                        ["注册用户", data.user, "/"],
+                        ["所有订单", data.all.unit, data.all.price],
+                        ["Stripe", data.stripe.unit, data.stripe.price],
+                        ["iTunes", data.ios.unit, data.ios.price],
+                        ["payssion", data.payssion.unit, data.payssion.price],
+                        ["paypal", data.paypal.unit, data.paypal.price]
+                        ["googleplay", data.GooglePlay.unit, data.GooglePlay.price]
+                    ]
+
+
+                    setTable("cus-table", cus, [{'title': '项'}, {'title': '总计'}, {'title': '收入'}]);
+
+                }
+            });
+
+        })
+
+        //检索相关数据,提交
+        $('#submit-form').click(function () {
+            $(this).addClass('disabled');
+            $(this).text('Loading....');
+
+            var s_dt = $('#startdate').val();
+            var e_dt = $('#enddate').val();
+            var period = $('#period').val();
+            if (s_dt.length === 0 || e_dt.length === 0) {
+                alert('时间不能为空');
+                $(this).removeClass('disabled');
+                $(this).text('Submit');
+                return
+            }
+            if (s_dt > e_dt || s_dt === e_dt) {
+                alert('开时间必须小于结束时间');
+                $(this).removeClass('disabled');
+                $(this).text('Submit');
+                return
+            }
+            $.ajax({
+                url: './',
+                contentType: "application/json;charset=utf-8",
+                type: "post",
+                dataType: "json",
+                data: JSON.stringify({"s_dt": s_dt, "e_dt": e_dt, 'ty': "img"}),
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                },
+                complete: function (data) {
+                    $('#submit-form').removeClass('disabled')
+                    $('#submit-form').text('Submit')
+                },
+                success: function (data) {
+                    console.log(data)
+                    if (data.code === -1) {
+                        alert('未查询到数据');
+                        return
+                    }
+
+                    setEcharts(data.dt_list, data.img_info.p, ppayChart)
+                    setEcharts(data.dt_list, data.img_info.c, cpayChart)
+                    setEcharts(data.dt_list, data.img_info.r_c, regChart)
+
+                    {#$('#dnu-btn').addClass('btn-success');#}
+                    {#$('#dau-btn').removeClass('btn-success');#}
+                    {#$('#panel-dnu').removeClass('hidden')#}
+                    {#$('#panel-dau').addClass('hidden')#}
+
+                }
+            });
+
+
+        });
+
+        function setTable(id_table, data, columns) {
+            console.log(id_table, data, columns)
+            var tbl_options = {
+                destroy: true,
+                "stateLoaded": function (settings, data) {
+                    console.log('stateLoaded')
+                    var hide_clm_ids = [];
+                    $.each(data.columns, function (idx, clm) {
+                        if (!clm.visible)
+                            hide_clm_ids.push(idx)
+                    });
+                    $('#select_hide_column').multiselect('select', hide_clm_ids);
+                },
+                "pageLength": 25,
+                "order": [],
+                dom: "Blfrtip",
+                buttons: [
+                    {
+                        extend: "copy",
+                        className: "btn-sm"
+                    },
+                    {
+                        extend: "csv",
+                        className: "btn-sm"
+                    },
+
+                ],
+                responsive: true
+            }
+            tbl_options.data = data;
+            tbl_options.columns = columns;
+            var var_table = $('#' + id_table).DataTable(tbl_options);
+            return var_table
+        }
+
+        function setEcharts(x_index, data, myChart) {
+            var option = {
+                color: ['#DC143C', '#000000', '#FFD700', '#00FF00',
+                    '#1E90FF', '#FF00FF', '#ca8622', '#bda29a',
+                    '#000080', '#800000', '#2F4F4F'],
+                title: {
+                    text: ''
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross',
+                        label: {
+                            backgroundColor: '#6a7985'
+                        }
+                    }
+                },
+                legend: {
+                    data: []
+                },
+                toolbox: {
+                    feature: {
+                        saveAsImage: {}
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: []
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                series: []
+            };
+            var dt_arr = x_index;
+            var v_obj = data;
+            var lengend_arr = []
+            for (let v in v_obj) {
+                lengend_arr.push(v)
+                option.series.push({
+                    name: v,
+                    type: 'line',
+                    data: v_obj[v]
+                },);
+
+            }
+            option.legend.data = lengend_arr;
+            option.xAxis[0].data = dt_arr;
+            myChart.clear();
+            myChart.setOption(option, true);
+        }
+
+        {#TODO: 添加渠道后需要修改#}
+        var al = [
+            ["注册用户", {{data.all.user}}, "/"],
+            ["所有订单", {{data.all.all.unit}}, {{data.all.all.price}}],
+            ["Stripe", {{data.all.2.unit}}, {{data.all.2.price}}],
+            ["iTunes", {{data.all.1.unit}}, {{data.all.1.price}}],
+            ["payssion", {{data.all.5.unit}}, {{data.all.5.price}}],
+            ["paypal", {{data.all.6.unit}}, {{data.all.6.price}}],
+            ["googleplay", {{data.all.7.unit}}, {{data.all.7.price}}]
+        ]
+        var today = [
+            ["注册用户", {{data.today.user}}, "/"],
+            ["所有订单", {{data.today.all.unit}}, {{data.today.all.price}}],
+            ["Stripe", {{data.today.2.unit}}, {{data.today.2.price}}],
+            ["iTunes", {{data.today.1.unit}}, {{data.today.1.price}}],
+            ["payssion", {{data.today.5.unit}}, {{data.today.5.price}}],
+            ["paypal", {{data.today.6.unit}}, {{data.today.6.price}}],
+            ["googleplay", {{data.today.7.unit}}, {{data.today.7.price}}]
+        ]
+        var day3 = [
+            ["注册用户", {{data.day3.user}}, "/"],
+            ["所有订单", {{data.day3.all.unit}}, {{data.day3.all.price}}],
+            ["Stripe", {{data.day3.2.unit}}, {{data.day3.2.price}}],
+            ["iTunes", {{data.day3.1.unit}}, {{data.day3.1.price}}],
+            ["payssion", {{data.day3.5.unit}}, {{data.day3.5.price}}],
+            ["paypal", {{data.day3.6.unit}}, {{data.day3.6.price}}],
+            ["googleplay", {{data.day3.7.unit}}, {{data.day3.7.price}}]
+        ]
+        var day7 = [
+            ["注册用户", {{data.day7.user}}, "/"],
+            ["所有订单", {{data.day7.all.unit}}, {{data.day7.all.price}}],
+            ["Stripe", {{data.day7.2.unit}}, {{data.day7.2.price}}],
+            ["iTunes", {{data.day7.1.unit}}, {{data.day7.1.price}}],
+            ["payssion", {{data.day7.5.unit}}, {{data.day7.5.price}}],
+            ["paypal", {{data.day7.6.unit}}, {{data.day7.6.price}}],
+            ["googleplay", {{data.day7.7.unit}}, {{data.day7.7.price}}]
+        ]
+
+
+        setTable("today_table", today, [{'title': '项'}, {'title': '总计'}, {'title': '收入'}]);
+        setTable("day3", day3, [{'title': '项'}, {'title': '总计'}, {'title': '收入'}]);
+        setTable("day7", day7, [{'title': '项'}, {'title': '总计'}, {'title': '收入'}]);
+        setTable("allday", al, [{'title': '项'}, {'title': '总计'}, {'title': '收入'}]);
+        $.ajax({
+            url: './',
+            contentType: "application/json;charset=utf-8",
+            type: "post",
+            dataType: "json",
+            data: JSON.stringify({'ty': "img", 'init': true}),
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+            },
+            complete: function (data) {
+                $('#submit-form').removeClass('disabled')
+                $('#submit-form').text('Submit')
+            },
+            success: function (data) {
+                console.log(data)
+
+
+                setEcharts(data.dt_list, data.img_info.p, ppayChart)
+                setEcharts(data.dt_list, data.img_info.c, cpayChart)
+                setEcharts(data.dt_list, data.img_info.r_c, regChart)
+
+                {#$('#dnu-btn').addClass('btn-success');#}
+                {#$('#dau-btn').removeClass('btn-success');#}
+                {#$('#panel-dnu').removeClass('hidden')#}
+                {#$('#panel-dau').addClass('hidden')#}
+
+            }
+        });
+
+    </script>
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/xadmin/vendor/DataTables-1.10.20/css/jquery.dataTables.css">
+    <link href="/static/xadmin/vendor/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet"/>
+    <link href="/static/xadmin/vendor/jQuery-tags-input/bootstrap-tagsinput.css" rel="stylesheet"/>
+
+{% endblock %}
+
+
+

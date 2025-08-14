@@ -1,0 +1,459 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+
+{% block content-nav %}
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs" style="margin-bottom: 10px;">
+        <style>
+            #xadmin-form > ul {
+                margin-right: 20px;
+            }
+
+            #xadmin-form > ul > li {
+                margin-right: 20px;
+            }
+
+            #xadmin-form ul.dropdown-menu {
+                left: 0;
+                top: 120%;
+            }
+
+            #xadmin-form .dropdown-submenu .popover {
+                left: 0;
+                top: 120%;
+            }
+
+            #xadmin-form .search-group {
+                top: 8px;
+            }
+
+            #xadmin-form .search-group .btn-primary + span {
+                left: 10px;
+            }
+
+            #filter-arr nav button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
+            #filter-arr nav > span.remove-form {
+                border: 1px solid #000;
+                padding: 5px;
+                margin: 0 15px;
+                cursor: pointer;
+                display: inline-block;
+            }
+
+            #filter-arr nav:first-of-type span.remove-form {
+                display: none;
+            }
+
+        </style>
+        <div class="navbar-header">
+            <a class="navbar-brand" data-toggle="collapse" data-target="#top-nav .navbar-collapse">订阅持续情况
+            </a>
+        </div>
+
+        <!-- 筛选条件 -->
+
+        <form id="xadmin-form">
+            <!-- 搜索国家 -->
+            <ul class="nav navbar-nav">
+                <li class="dropdown-submenu">
+                    <a>Country_code</a>
+                    <div class="popover ">
+                        <div class="arrow"></div>
+                        <h3 class="popover-title">
+                            Search country_code
+                        </h3>
+                        <div class="popover-content" style="width: 250px">
+                            <div class="input-group">
+                                <input id="country-code-val" class="input-char form-control" type="text"
+                                       placeholder="Enter country_code…">
+                                <span class="input-group-btn" id="country-code">
+                        <button class="btn btn-success" type="button"><i class="fa fa-search"></i></button>
+                      </span>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+
+                <li class="dropdown-submenu">
+                    <a>Channel</a>
+
+                    <ul class="dropdown-menu" data-type="channel">
+                        <li value="1"><a href="javascript:;">ios</a></li>
+                        <li value="0"><a href="javascript:;">android</a></li>
+                    </ul>
+
+                </li>
+
+                <li class="dropdown-submenu">
+                    <a>app</a>
+                    <ul class="dropdown-menu" data-type="app">
+                        <li value=""><a href="javascript:;">pro</a></li>
+                        <li value=""><a href="javascript:;">lite</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown-submenu">
+                    <a>SKU</a>
+                    <ul class="dropdown-menu" data-type="sku">
+                        {% for i in sku %}
+                            <li value=""><a href="javascript:;">{{ i }}</a></li>
+                        {% endfor %}
+
+                    </ul>
+                </li>
+
+
+            </ul>
+            <div class="input-group search-group ">
+                <input id="startdate" name="dtBegin" class=" multiple-form-stop form-control date-picker"
+                       placeholder="Start Time" style="width: 100px">
+                <span class="input-group-addon">to</span>
+                <input id="enddate" name="dtEnd" class=" multiple-form-stop form-control date-picker"
+                       placeholder="End Time" style="width: 100px">
+                <span class="input-group-addon">:</span>
+                <input id="period" name="period" class=" multiple-form-stop form-control " placeholder="Period"
+                       style="width: 50px">
+                <span class="input-group-btn btn btn-primary" id="submit-form">Submit</span>
+                <span class="input-group-btn btn btn-primary" id="add-form">Add form</span>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- fiter标签组 -->
+    <ul id="filter-arr" style="padding: 0px 10px">
+        <nav style="float: inherit;display: block;padding: 0px 10px;margin-bottom: 2px;"
+             class="navbar-header filter-item breadcrumb" data-value="0">
+
+        </nav>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <div>{{ user.token }}</div>
+    <div class="bs-example" data-example-id="condensed-table">
+        <table class="table table-hover table-condensed" id="data-table">
+
+        </table>
+    </div>
+{% endblock %}
+{% block extrabody %}
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            var filterArr = [{
+                countrycode: [],
+                channel: [],
+                app: [],
+                sku:[],
+            }]
+            var filterIndex = 0,
+                filterForm = filterArr[filterIndex]
+
+            var t_header_data = ['订阅开始月份', "已开始的订阅", '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+
+            $(".date-picker").datepicker({
+                autoclose: true,
+                clearBtn: true,
+                todayBtn: "linked",
+                todayHighlight: true,
+                format: "yyyy-mm-dd"
+            });
+
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $('body').on('click', '.c-remove', function () {
+                //删除改标签时，目标表单会移至当前
+                filterIndex = $(this).parent('nav').index()
+                filterForm = filterArr[filterIndex]
+                var type = $(this).attr('data-type')
+                var val = $(this).text()
+                filterForm[type].splice($.inArray(val, filterForm[type]), 1)
+                filterArr[filterIndex] = filterForm
+                setButton()
+            });
+
+            $('#country-code').click(function () {
+                var country_code = $('#country-code-val').val();
+                addButton(country_code, 'countrycode')
+            })
+
+
+            $('#xadmin-form ul ul a').click(function () {
+                addButton(this.text, $(this).parents('ul').attr('data-type'))
+            })
+
+            //设置filter按钮
+            function setButton() {
+                var dom = '<button class="remove-form pull-right btn-danger btn-xs navbar-btn">删除该表单</button>'
+                for (let i in filterForm) {
+                    if (filterForm[i].length > 0) {
+                        dom += i + ":"
+                        if (filterForm[i] instanceof Array) {
+                            for (let v in filterForm[i]) {
+                                dom += '<button data-type=' + i +
+                                    ' type="button" class="btn btn-primary btn-xs navbar-btn  c-remove"style="margin-top: 8px;">' +
+                                    filterForm[i][v] +
+                                    '</button>'
+                            }
+                        } else {
+                            dom += '<button data-type=' + i +
+                                ' type="button" class="btn btn-primary btn-xs navbar-btn  c-remove "style="margin-top: 8px;">' +
+                                filterForm[i] +
+                                '</button>'
+                        }
+                    }
+                }
+                $('#filter-arr>nav').css({
+                    'background': 'transparent'
+                }).eq(filterIndex).html(dom).css({
+                    'background': 'rgba(0,0,0,0.2)'
+                })
+            }
+
+            //添加筛选类别，可复选
+            function addButton(str, type) {
+
+                if (filterForm[type].indexOf(str) == -1) {
+                    filterForm[type].push(str)
+                    filterArr[filterIndex] = filterForm
+                    setButton()
+                } else {
+                    return false
+                }
+            }
+
+            //json 排序
+            function jsonSort(jsonObj) {
+                let arr = [];
+                for (var key in jsonObj) {
+                    arr.push(key)
+                }
+                arr.sort();
+                var obj = {}
+                for (var i in arr) {
+                    obj[arr[i]] = jsonObj[arr[i]]
+                }
+                return obj
+            }
+
+            //设置表格
+            function setTable(data, t_header_data) {
+
+                var t_header_html = '';
+                var t_bady_html = "";
+                t_header_html += "<thead><tr>";
+                for (var i = 0; i < t_header_data.length; i++) {
+                    t_header_html += "<th>" + t_header_data[i] + "</th>";
+                }
+                t_header_html += "</tr></thead>";
+                t_bady_html += '<tbody>';
+
+                console.log(data)
+                var data = jsonSort(data)
+                console.log(data)
+
+                for (let i in data) {
+                    t_bady_html += "<tr>";
+                    t_bady_html += "<th scope='row'>" + i + "</th>";
+                    t_bady_html += "<td align='center'>" + data[i][0] + "</td>";
+                    for (var k = 1; k < data[i].length - 1; k++) {
+                        console.log(data[i][k])
+                        if (data[i][k]==0){
+
+                            t_bady_html += "<td>" + (data[i][k] * 100).toFixed(3) + '%' + "</td>"
+                        }else {
+                            t_bady_html += "<td style=background-color:#abf7d0;>" + (data[i][k] * 100).toFixed(3) + '%' + "</td>";
+                        }
+                    }
+                    t_bady_html += "</tr>";
+                }
+
+
+                t_bady_html += '</tbody>';
+                $('#data-table').html(t_header_html + t_bady_html)
+
+            }
+
+            $.getCookie = function (name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie != '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+
+            //检索相关数据,提交
+            $('#submit-form').click(function () {
+                if ($('#startdate').val().length == 0 || $('#enddate').val().length == 0) {
+                    alert('时间不能为空')
+                } else {
+                    var data_req = {
+                        data: filterArr,
+                        startdate: $('#startdate').val(),
+                        enddate: $('#enddate').val(),
+                        period: $('#period').val()
+                    }
+                    $.ajax({
+                        url: '/persistence/',
+                        contentType: "application/json;charset=utf-8",
+                        type: "post",
+                        dataType: "json",
+                        data: JSON.stringify(data_req),
+                        beforeSend: function (xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                        },
+                        success: function (data) {
+                            var list = {}
+                            if (data.code == 0) {
+                                var dataLen = data.result.length
+                                for (var j = 0; j < dataLen; j++) {
+
+                                    for (let i in data.result[j]) {
+
+                                        if (data.result[j][i][12].toLowerCase() == 'all') {
+                                            list[i] = data.result[j][i]
+                                        } else {
+                                            list[i + '_' + data.result[j][i][12]] = data.result[j][i]
+                                        }
+
+                                    }
+                                }
+
+                                setTable(list, t_header_data)
+                            }
+                        }
+                    });
+                }
+            })
+
+            //添加对比form
+            $('#add-form').click(function () {
+                if ($('#filter-arr>nav:last-of-type').find('.c-remove').length == 0 && filterIndex != 0) {
+
+                    return false
+                } else {
+                    filterIndex++;
+                    filterArr[filterIndex] = {
+                        countrycode: [],
+                        channel: [],
+                        sku: [],
+                        app: [],
+                    }
+                    filterForm = filterArr[filterIndex]
+                    $('#filter-arr').append(
+                        '<nav style="float: inherit;display: block;padding: 0px 10px;margin-bottom: 2px;" class="navbar-header breadcrumb"><button class="pull-right btn-success btn-xs">新表单创建成功</button></nav>'
+                    )
+                    //多表单禁止选择项
+                    //if (filterArr.length > 1) {
+                    //   $('.multiple-form-stop').attr('disabled', true)
+                    //}
+                }
+            })
+
+            //删除对比form
+            $('#filter-arr').on('click', 'nav button.remove-form', function () {
+                var index = $(this).parent().index()
+                filterArr.splice(index, 1)
+
+                //如果只剩下最后一项，则清空nav内容，否则删除nav
+                if (filterArr.length == 0) {
+                    $(this).parent().empty()
+                    filterIndex = 0
+                    filterArr[0] = {
+                        countrycode: [],
+                        channel: [],
+                        sku: [],
+                        app: []
+                    }
+                } else {
+                    filterIndex--
+                    $(this).parent().remove()
+                }
+
+                if (filterIndex < 0) {
+                    filterIndex = 0
+                }
+
+                filterForm = filterArr[filterIndex]
+
+
+                if (filterArr.length == 1) {
+                    $('.multiple-form-stop').attr('disabled', false)
+                }
+            });
+
+            // var myChart = echarts.init(document.getElementById('main'));
+
+
+            //设置图表
+            // function setEcharts(data,option) {
+            //     var time_array = new Array();
+            //     var value_array = new Array();
+
+
+            //     for (let i in data) {
+            //         time_array.push(data[i].date)
+            //         value_array.push(data[i].percentage)
+            //     }
+            //     if (option.legend.data.indexOf(data[0].filter_str) < 0) {
+            //         if (option.xAxis.data.length == 0) {
+            //             option.xAxis.data = time_array
+            //         }
+            //         option.legend.data.push(data[0].filter_str)
+            //         option.series.push({
+            //             name: data[0].filter_str,
+            //             type: 'bar',
+            //             data: value_array
+            //         })
+            //     }
+
+            //     // 使用刚指定的配置项和数据显示图表。
+            //     myChart.setOption(option);
+            // };
+            //排序
+            var compare = function (obj1, obj2) {
+                if (obj1.date > obj2.date) {
+                    return 1;
+                } else if (obj1.date == obj2.date) {
+                    if (obj1.filter_str > obj2.filter_str) {
+                        return 1
+                    } else {
+                        return -1
+                    }
+                } else {
+                    return -1;
+                }
+
+            }
+
+        });
+
+    </script>
+
+
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+{% endblock %}
+
+
+

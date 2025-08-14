@@ -1,0 +1,236 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+{% block content-nav %}
+    <style>
+        .navbar-default {
+            background-color: #93c54b;
+            border-color: #3e3f3a;
+        }
+
+        li {
+            list-style-type: none;
+        }
+
+        .c_nav_header > li {
+            float: left;
+            width: 150px;
+            height: 65px;
+            list-style-type: none;
+            margin-left: 270px;
+        }
+
+        .filter_items {
+            padding-top: 20px;
+        {#padding-left: 50px;#}{#margin-left: 100px;#}
+
+        }
+
+        .c-form-control {
+            display: block;
+            width: 100%;
+            height: 39px;
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #3e3f3a;
+            background-color: #ffffff;
+            background-image: none;
+            border: 1px solid #dfd7ca;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        }
+
+        .nav-tabs > li > a {
+            background-color: #ffffff;
+            border-color: #ffffff;
+            color: #9e3333;
+        }
+    </style>
+    <h1 class="no-data hidden" style="margin-left: 500px;">无内容</h1>
+    <table id="un_msg" class="table  table-hover"
+           cellspacing="0" width="100%">
+        <thead>
+        </thead>
+    </table>
+
+{% endblock %}
+
+{% block content %}
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
+
+
+{% block extrabody %}
+
+
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="/static/xadmin/dist/echarts.min.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="/static/xadmin/vendor/DataTables-1.10.20/js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+
+
+        function switchpanl(obj) {
+            $(obj).addClass('btn-success');
+            if ($(obj).attr('id') === 'dnu-btn') {
+                $('#dau-btn').removeClass('btn-success')
+                $('#panel-dnu').removeClass('hidden')
+                $('#panel-dau').addClass('hidden')
+
+            }
+            ;
+            if ($(obj).attr('id') === 'dau-btn') {
+                $('#dnu-btn').removeClass('btn-success')
+
+                $('#panel-dau').removeClass('hidden')
+                $('#panel-dnu').addClass('hidden')
+            }
+            ;
+        }
+
+
+        //检索相关数据,提交
+
+
+        function setTable(id_table, data, columns) {
+            var tbl_options = {
+                destroy: true,
+                "stateLoaded": function (settings, data) {
+                    console.log('stateLoaded')
+                    var hide_clm_ids = [];
+                    $.each(data.columns, function (idx, clm) {
+                        if (!clm.visible)
+                            hide_clm_ids.push(idx)
+                    });
+                },
+                "pageLength": 25,
+                "order": [[ 4, "desc" ]],
+                dom: "Blfrtip",
+                buttons: [
+                    {
+                        extend: "copy",
+                        className: "btn-sm"
+                    },
+                    {
+                        extend: "csv",
+                        className: "btn-sm"
+                    },
+
+                ],
+                responsive: true
+            }
+            tbl_options.data = data;
+            tbl_options.columns = columns;
+            var var_table = $('#' + id_table).DataTable(tbl_options);
+            return var_table
+        }
+
+        var dateFormat = function (timestamp, formats) {
+            // formats格式包括
+            // 1. Y-m-d
+            // 2. Y-m-d H:i:s
+            // 3. Y年m月d日
+            // 4. Y年m月d日 H时i分
+            formats = formats || 'Y-m-d';
+
+            var zero = function (value) {
+                if (value < 10) {
+                    return '0' + value;
+                }
+                return value;
+            };
+
+            var myDate = timestamp ? new Date(timestamp) : new Date();
+
+            var year = myDate.getFullYear();
+            var month = zero(myDate.getMonth() + 1);
+            var day = zero(myDate.getDate());
+
+            var hour = zero(myDate.getHours());
+            var minite = zero(myDate.getMinutes());
+            var second = zero(myDate.getSeconds());
+
+            return formats.replace(/Y|m|d|H|i|s/ig, function (matches) {
+                return ({
+                    Y: year,
+                    m: month,
+                    d: day,
+                    H: hour,
+                    i: minite,
+                    s: second
+                })[matches];
+            });
+        };
+
+
+        $.ajax({
+            url: '/ccc/unl/',// 需要修改
+            contentType: "application/json;charset=utf-8",
+            type: "get",
+            dataType: "json",
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                xhr.setRequestHeader("P", "com.snailvpn.iosproxy")
+            },
+            complete: function (data) {
+                if (data.responseText.length===0){
+                    $(".no-data").removeClass('hidden')
+                    throw new Error("无内容");
+                }
+            },
+            success: function (data) {
+
+                if (data.length===0){
+                    $(".no-data").removeClass('hidden')
+                    throw new Error("无内容");
+
+                }
+                $.each(data, function (idx, clm) {
+                    console.log(clm[3])
+                    var dt = dateFormat(Number(clm[3]),"Y/m/d H:i:s")
+                    console.log(dt)
+                    data[idx].splice(-2,1)
+                    data[idx].push(dt)
+                    });
+                setTable("un_msg", data, [{'title': 'id'}, {'title': '用户名称'}, {'title': '平台'}, {'title': '问题'}, {'title': '时间bj'}]);
+                $("#un_msg tr td:nth-child(2)").each(function () {
+                    this.style="cursor:pointer"
+                })
+                $("#un_msg").on("click", "tr td:nth-child(2)", function () {
+                    var u_id = $(this).siblings().eq(0).text()
+                    var p = $(this).siblings().eq(1).text()
+
+                    window.location.href="./?i="+u_id+"&p="+p
+                })
+            }
+        });
+
+    </script>
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/xadmin/vendor/DataTables-1.10.20/css/jquery.dataTables.css">
+    <link href="/static/xadmin/vendor/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet"/>
+    <link href="/static/xadmin/vendor/jQuery-tags-input/bootstrap-tagsinput.css" rel="stylesheet"/>
+
+{% endblock %}
+
+
+

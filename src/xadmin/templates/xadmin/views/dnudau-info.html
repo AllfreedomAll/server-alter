@@ -1,0 +1,393 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+{% block content-nav %}
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs" style="margin-bottom: 10px;">
+        <style>
+            .dataTables_length {
+                width: 40%;
+                float: left;
+            }
+        </style>
+        <div class="navbar-header">
+            <a class="navbar-brand" data-toggle="collapse" data-target="#top-nav .navbar-collapse">
+                {{ view_name }}
+            </a>
+        </div>
+
+        <form id="xadmin-form" style="margin-top: 8px;">
+            <!-- 包选择 -->
+            <ul class="nav navbar-nav " style="margin-right: 10px;">
+                <select class="selectpicker " title="请选择包名" data-live-search="true" data-actions-box="true"
+                        id="pkg-select" multiple>
+
+                    {% for k in pkg %}
+                        <option value="{{ k.pkg }}">{{ k.name }}</option>
+                    {% endfor %}
+
+                </select>
+            </ul>
+
+            <!-- level选择 -->
+            <ul class="nav navbar-nav " style="margin-right: 10px;" id="level-ul">
+                <select class="selectpicker " title="请选择等级" id="level-select">
+                    {% for k in level %}
+                        <option value="{{ k.0 }}">{{ k.1 }}</option>
+                    {% endfor %}
+                </select>
+            </ul>
+
+            <!-- 类型选择选择 -->
+            <ul class="nav navbar-nav " style="margin-right: 10px;" id="type-ul">
+                <select class="selectpicker " onchange="show_value()" title="类型" id="type-select">
+                    {% for k in typ %}
+                        <option value="{{ k.0 }}">{{ k.1 }}</option>
+                    {% endfor %}
+                </select>
+            </ul>
+            <!-- 国家选择 -->
+            <ul class="nav navbar-nav hidden" style="margin-right: 10px;" id="country-select-ul">
+                <select class="selectpicker form-control " multiple title="请选择国家" data-live-search="true"
+                        id="country-select">
+                    <option value="all">ALL</option>
+                    {% for k in country %}
+                        <option value="{{ k.code }}">{{ k.code }}</option>
+                    {% endfor %}
+
+                </select>
+            </ul>
+            <!-- 版本输入选择 -->
+            <ul class="nav navbar-nav hidden" id="ver-value-ul" style="margin-right: 10px;">
+                <input type="text" class="form-control" id="ver-value" placeholder="版本号">
+            </ul>
+            <!-- 时间选择 -->
+            <ul class="nav navbar-nav " style="margin-right: 10px;">
+                <div class="input-group search-group ">
+                    <input id="startdate" class=" multiple-form-stop form-control date-picker"
+                           placeholder="Start Time" style="width: 100px">
+                    <span class="input-group-addon">to</span>
+                    <input id="enddate" class=" multiple-form-stop form-control date-picker"
+                           placeholder="End Time" style="width: 100px">
+                    <span class="input-group-addon">:</span>
+                    <input id="period" name="period" class=" multiple-form-stop form-control " placeholder="Period"
+                           style="width: 50px">
+
+                    {#                <span class="input-group-btn btn btn-primary" id="add-form">Add form</span>#}
+                </div>
+            </ul>
+
+
+            <button type="button" class="btn btn-info" id="submit-form">Submit</button>
+        </form>
+
+
+    </div>
+{% endblock %}
+
+{% block content %}
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                {{ view_name }}
+            </h3>
+        </div>
+        <div class="panel-body" id="panel-dnu">
+            <table id="u_ctr_table" class="table table-striped table-bordered  dt-responsive nowrap"
+                   cellspacing="0" width="100%">
+                <thead>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div id="main" style="width: 1200px;height:500px; "></div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+{% endblock %}
+
+
+{% block extrabody %}
+    <script type="text/javascript">
+
+
+        //设置图表
+
+        $(function () {
+            $("select").selectpicker({
+                "width": 140,
+                'deselectAllText': '全不选',
+                'selectAllText': '全选',
+
+            });
+            $('#ver-value').tagsinput({"width": "80px"});
+            var myChart = echarts.init(document.getElementById('main'));
+            $(".date-picker").datepicker({
+                autoclose: true,
+                clearBtn: true,
+                todayBtn: "linked",
+                todayHighlight: true,
+                format: "yyyy-mm-dd"
+            });
+            //检索相关数据,提交
+            $('#submit-form').click(function () {
+                var s_dt = $('#startdate').val();
+                var e_dt = $('#enddate').val();
+                var period = $('#period').val();
+                if (s_dt.length === 0 || e_dt.length === 0) {
+                    alert('时间不能为空');
+                    return
+                }
+                if (s_dt > e_dt || s_dt === e_dt) {
+                    alert('开时间必须小于结束借鉴');
+                    return
+                }
+                var pkg = $('#pkg-select').val();
+                var typ = $('#type-select').val();
+                var ver = $("#ver-value").tagsinput('items');
+                var ctr = $('#country-select').val();
+                var level = $('#level-select').val();
+                if (pkg.length === 0 || typ.length === 0) {
+                    alert('请选择包或者类型');
+                    return
+                }
+                if ((ver.length === 0 || ver === null) && (ctr === null || ctr.length === 0) && typ !== '3') {
+                    alert('类型的值不能为空');
+                    return
+                }
+
+                var this_obj = $(this);
+                this_obj.addClass('disabled');
+                this_obj.text('Loading....');
+                var a_jax_data = {
+                    'pkg': pkg,
+                    'typ': typ,
+                    'level': level,
+                    's_dt': s_dt,
+                    'e_dt': e_dt,
+                    'period': period,
+                };
+                if (typ === '0') {
+                    a_jax_data.ver = ver
+                } else {
+                    a_jax_data.ctr = ctr
+                }
+                var option = {
+                    title: {
+                        text: ''
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#6a7985'
+                            }
+                        }
+                    },
+                    legend: {
+                        data: []
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: [
+                        {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: []
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value'
+                        }
+                    ],
+                    series: []
+                };
+
+                $.ajax({
+                    url: './',
+                    contentType: "application/json;charset=utf-8",
+                    type: "post",
+                    dataType: "json",
+                    data: JSON.stringify(a_jax_data),
+                    beforeSend: function (xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                    },
+                    complete: function () {
+                        $('#submit-form').removeClass('disabled');
+                        $('#submit-form').text('Submit');
+                    },
+                    success: function (data, this_obj) {
+                        if (data.code < 0) {
+                            alert(data.msg)
+                        }
+                        if (data.code === 0) {
+                            var data_info = JSON.parse(data.data);
+                            setTable("u_ctr_table", data_info, [{'title': '日期'}, {'title': '值'}, {'title': '总计'}, {'title': 'rank'}, {'title': '均值'}]);
+                            setEcharts(data.img_data, option, myChart)
+                            {#setTable("ip_ctr_table", JSON.parse(data.result.dnu.ip_c.a), [{'title': 'ip国家'}, {'title': '总计'}]);#}
+                            {#setTable("app_ver_table", JSON.parse(data.result.dnu.ver.a), [{'title': '版本'}, {'title': '总计'}]);#}
+                            {#setTable("p_ip_ctr_table", JSON.parse(data.result.dnu.ip_c.p), [{'title': 'ip国家'}, {'title': '总计'}]);#}
+                            {#setTable("p_app_ver_table", JSON.parse(data.result.dnu.ver.p), [{'title': '版本'}, {'title': '总计'}]);#}
+                            {#setTable("p_u_ctr_table", JSON.parse(data.result.dnu.u_c.p), [{'title': 'user国家'}, {'title': '总计'}]);#}
+                            {#setTable("u_ctr_table", [['aaa','sss'],['dsss','dddd'],['fff',]], [{'title': 'user国家'}, {'title': '总计'}]);#}
+
+                            {#setTable("dau_p_u_ctr_table", JSON.parse(data.result.dau.u_c.p), [{'title': 'user国家'}, {'title': '总计'}]);#}
+                            {#setTable("dau_p_app_ver_table", JSON.parse(data.result.dau.ver.p), [{'title': '版本'}, {'title': '总计'}]);#}
+                            {#setTable("dau_u_ctr_table", JSON.parse(data.result.dau.u_c.a), [{'title': 'user国家'}, {'title': '总计'}]);#}
+                            {#setTable("dau_app_ver_table", JSON.parse(data.result.dau.ver.a), [{'title': '版本'}, {'title': '总计'}]);#}
+
+
+                        }
+
+                        $('#dnu-btn').addClass('btn-success');
+                        $('#dau-btn').removeClass('btn-success');
+                        $('#panel-dnu').removeClass('hidden')
+                        $('#panel-dau').addClass('hidden')
+
+                    }
+                });
+
+
+            });
+        });
+
+        function setEcharts(data, option, myChart) {
+            var dt_arr = data.dt_list;
+            var v_obj = data.img_info;
+            var lengend_arr = []
+            for (let v in v_obj) {
+                lengend_arr.push(v)
+                option.series.push({
+                    name: v,
+                    type: 'line',
+                    data: v_obj[v]
+                },);
+
+            }
+            option.legend.data = lengend_arr;
+            option.xAxis[0].data = dt_arr;
+            myChart.setOption(option, true);
+        }
+
+        function show_value() {
+
+            var ver_obj = $("#ver-value-ul");
+            var ctr_obj = $("#country-select-ul");
+            var t = $("#type-select").val();
+            ver_obj.addClass('hidden');
+            ctr_obj.addClass('hidden');
+
+            if (t === '0') {
+                ver_obj.removeClass('hidden')
+            }
+            if (t === '1' || t === '2') {
+                ctr_obj.removeClass('hidden')
+            }
+
+        }
+
+        function switchpanl(obj) {
+            $(obj).addClass('btn-success');
+            if ($(obj).attr('id') === 'dnu-btn') {
+                $('#dau-btn').removeClass('btn-success');
+                $('#panel-dnu').removeClass('hidden');
+                $('#panel-dau').addClass('hidden')
+
+            }
+
+            if ($(obj).attr('id') === 'dau-btn') {
+                $('#dnu-btn').removeClass('btn-success');
+
+                $('#panel-dau').removeClass('hidden');
+                $('#panel-dnu').addClass('hidden')
+            }
+
+        }
+
+        function setTable(id_table, data, columns) {
+            var tbl_options = {
+                destroy: true,
+                "stateLoaded": function (settings, data) {
+                    var hide_clm_ids = [];
+                    $.each(data.columns, function (idx, clm) {
+                        if (!clm.visible)
+                            hide_clm_ids.push(idx)
+                    });
+                    $('#select_hide_column').multiselect('select', hide_clm_ids);
+                },
+                "pageLength": 50,
+                "order": [],
+                dom: 'Blfrtip',
+                buttons: [
+                    {
+                        extend: "copy",
+                        className: "btn-sm"
+                    },
+                    {
+                        extend: "csv",
+                        className: "btn-sm"
+                    },
+                    {
+                        extend: "excel",
+                        className: "btn-sm"
+                    },
+                    {
+                        extend: "pdfHtml5",
+                        className: "btn-sm"
+                    }
+                ],
+                responsive: true
+            };
+            tbl_options.data = data;
+            tbl_options.columns = columns;
+            var var_table = $('#' + id_table).DataTable(tbl_options);
+            return var_table
+        }
+
+
+    </script>
+
+
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="/static/xadmin/dist/echarts.min.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="/static/xadmin/vendor/DataTables-1.10.20/js/jquery.dataTables.js"></script>
+    <script src="/static/xadmin/vendor/bootstrap-select/js/bootstrap-select.js"></script>
+    <script src="/static/xadmin/vendor/jQuery-tags-input/bootstrap-tagsinput.js"></script>
+    <script type="text/javascript" src="/static/xadmin/vendor/datatables.net/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="/static/xadmin/vendor/datatables.net-buttons/js/dataTables.buttons.js"></script>
+    <script type="text/javascript" src="/static/xadmin/vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script type="text/javascript"
+            src="/static/xadmin/vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/xadmin/vendor/DataTables-1.10.20/css/jquery.dataTables.css">
+    <link href="/static/xadmin/vendor/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet"/>
+    <link href="/static/xadmin/vendor/jQuery-tags-input/bootstrap-tagsinput.css" rel="stylesheet"/>
+{% endblock %}
+
+
+

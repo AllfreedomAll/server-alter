@@ -1,0 +1,98 @@
+{% extends base_template %}
+{% load i18n l10n %}
+
+{% load xadmin_tags %}
+{% load crispy_forms_tags %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+    <li><a href="{% url 'xadmin:index' %}">{% trans 'Home' %}</a></li>
+    <li><a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a></li>
+    <li>Sync Server</li>
+</ul>
+{% endblock %}
+
+{% block nav_title %}{% if model_icon %}<i class="{{ model_icon }}"><sub class="fa fa-pencil"></sub></i> {% endif %}
+Tranlate Resource
+{% endblock %}
+
+
+{% block content %}
+<iframe name="if" id="if" style="display: none;"></iframe>
+<form class="form-inline" action="/api/v3/translate/" method="post" id="syncform" target="if">
+    {% csrf_token %}
+    <div class="form-actions well well-sm" style="width:98%;height:400px;overflow-y:scroll;overflow-x:hidden;">
+        <div>
+
+            <table class="table" id="result-table">
+                <thead>
+                <tr>
+                    <th>资源ID</th>
+                    <th>当前语言</th>
+                    <th>当前翻译</th>
+                    <th>翻译结果</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for obj in queryset %}
+                <tr id='original'>
+                    <td>{{ obj.res_id }}</td>
+                    <td>{{ obj.language }}</td>
+                    <td>{{ obj.local }}</td>
+                    <td></td>
+                </tr>
+
+                {% endfor %}
+
+                <select multiple name="res-ids" style="display: none">
+                    {% for obj in queryset %}
+                    <option value="{{ obj.id }}" selected>{{ obj.res_id }}</option>
+                    {% endfor %}
+                </select>
+
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="alert alert-success" role="alert" style="display:none;" id="import-result-alert">Translating...</div>
+
+    <select name="target" id="" class="form-control">
+        <option value="en">英语</option>
+        <option value="zh-CN">中文简体</option>
+        <option value="zh-TW">中文繁体</option>
+        <option value="pt">巴西葡语</option>
+        <option value="es">西班牙</option>
+        <option value="tr">土耳其</option>
+        <option value="ar">阿拉伯</option>
+    </select>
+
+    <button class="btn btn-success" type="submit" id="submit_upload_b" style="display:block;">Translate</button>
+    <a href="{% url opts|admin_urlname:'changelist' %}">
+        <button class="btn btn-success" type="button" id="close" style="display:none;"> Close</button>
+    </a>
+</form>
+<script>
+
+    $("#syncform").submit(function () {
+        $('#import-result-alert').show(1000)
+        $.ajax({
+            url: $("#syncform").attr('action'),
+            type: 'POST',
+            data: $('#syncform').serialize(),
+            success: function (a) {
+                var empty_cols = $('table tr td:nth-child(' + 4 + ')');
+                var infos = a.result
+                empty_cols.each(function (index, col) {
+                    $(col).text(infos[index]["translatedText"])
+                })
+                $('#import-result-alert').hide(2000)
+                $("#close").show()
+            }
+        });
+        return false;
+    });
+
+</script>
+{% endblock %}

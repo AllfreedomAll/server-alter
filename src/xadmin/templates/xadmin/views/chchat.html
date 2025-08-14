@@ -1,0 +1,954 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+{% block title %}{{ title }} | {{ site_title }}{% endblock %}
+{% block content-nav %}
+    <style>
+
+        .layout .content {
+            padding: 20px !important
+        }
+
+        .layout .content .chat .chat-header {
+        {#display: block !important;#} padding-bottom: 15px !important
+        }
+
+        .layout .content .chat .chat-header .chat-header-user h5 {
+            font-size: 19px !important
+        }
+
+        .layout .content .chat .chat-header .chat-header-action {
+            margin-top: 15px
+        }
+
+        .layout .content .chat .chat-body .messages .message-item {
+            max-width: 100% !important
+        }
+
+        }
+        @media screen and (max-width: 576px) {
+            body .sidebar-group, body:not(.rtl) .sidebar-group {
+                width: 100%
+            }
+
+            body.form-membership {
+                padding: 20px
+            }
+
+            body.form-membership .form-wrapper {
+                padding-right: 20px;
+                padding-left: 20px;
+                width: 100% !important;
+                margin-bottom: 20px
+            }
+        }
+
+        .tab-content {
+            padding-top: 30px
+        }
+
+        .tab-content .form-item {
+            margin-bottom: .8rem
+        }
+
+        .layout {
+            height: 70vh;
+        {#height:-webkit-calc(var(--vh,1vh) * 100);#} {#height:-moz-calc(var(--vh,1vh) * 100);#} {#height:calc(var(--vh,1vh) * 100);#} display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex
+        }
+
+        .layout .content {
+            padding: 30px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            -moz-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1
+        }
+
+        .layout .content .sidebar-group {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
+            -moz-box-orient: vertical;
+            -moz-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column
+        }
+
+        .layout .content .sidebar-group .sidebar {
+            margin-right: 30px;
+            background: #fff;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            overflow: hidden;
+            width: 330px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
+            -moz-box-orient: vertical;
+            -moz-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            -moz-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1
+        }
+
+        .layout .content .sidebar-group .sidebar:not(.active) {
+            display: none
+        }
+
+        .layout .content .sidebar-group .sidebar > header {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            -moz-box-pack: justify;
+            -ms-flex-pack: justify;
+            justify-content: space-between;
+            padding: 20px;
+            height: 80px;
+            font-weight: 700;
+            -webkit-border-radius: 0;
+            -moz-border-radius: 0;
+            border-radius: 0
+        }
+
+        .layout .content .sidebar-group .sidebar > header > span {
+            font-size: 22px
+        }
+
+        .layout .content .sidebar-group .sidebar > header ul {
+            margin-bottom: 0
+        }
+
+        .layout .content .sidebar-group .sidebar > header ul li {
+            margin-bottom: 0
+        }
+
+        .layout .content .sidebar-group .sidebar > form {
+            padding: 10px 20px
+        }
+
+        .layout .content .sidebar-group .sidebar > form input[type=text] {
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            border: none;
+            height: auto;
+            padding: 10px 15px;
+            background-color: #ebebeb
+        }
+
+        .layout .content .sidebar-group .sidebar > form input[type=text]:focus {
+            -webkit-box-shadow: none;
+            -moz-box-shadow: none;
+            box-shadow: none
+        }
+
+        .layout .content .sidebar-group .sidebar .sidebar-body {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            -moz-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1;
+            overflow: auto
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item {
+            padding: 20px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            cursor: pointer
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item:before {
+            content: '';
+            position: absolute;
+            display: block;
+            width: 5px;
+            background-color: #3db16b;
+            opacity: 0;
+            top: 0;
+            bottom: 0;
+            left: 0
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item.open-chat:before {
+            opacity: 1
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item.open-chat .users-list-body p {
+            font-weight: 600;
+            color: #646464
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item figure {
+            margin-right: 1rem
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item .users-list-body {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            -moz-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1;
+            position: relative;
+            min-width: 0;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
+            -moz-box-orient: vertical;
+            -moz-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item .users-list-body h5 {
+            white-space: nowrap;
+            -o-text-overflow: ellipsis;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: .2rem;
+            line-height: 1
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item .users-list-body p {
+            white-space: nowrap;
+            -o-text-overflow: ellipsis;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            margin-bottom: 0;
+            color: #969696
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item .users-list-body .users-list-action {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: #fff;
+            -webkit-box-shadow: -8px 1px 10px 5px #fff;
+            -moz-box-shadow: -8px 1px 10px 5px #fff;
+            box-shadow: -8px 1px 10px 5px #fff;
+            bottom: 0;
+            padding: 0 5px
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item .users-list-body .users-list-action [data-toggle=dropdown] i {
+            font-size: 18px
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item .users-list-body .users-list-action .new-message-count {
+            width: 23px;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            -moz-box-pack: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            line-height: 0;
+            font-size: 13px;
+            height: 23px;
+            background-color: #3db16b;
+            color: #fff;
+            -webkit-border-radius: 50%;
+            -moz-border-radius: 50%;
+            border-radius: 50%
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item .users-list-body .users-list-action.action-toggle {
+            display: none
+        }
+
+        .layout .content .sidebar-group .sidebar .list-group-item:hover .users-list-action.action-toggle {
+            display: block
+        }
+
+        .layout .content .chat {
+            margin-top: -37px;
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            -moz-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
+            -moz-box-orient: vertical;
+            -moz-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column
+        }
+
+        .layout .content .chat .chat-header {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-pack: justify;
+            -webkit-justify-content: space-between;
+            -moz-box-pack: justify;
+            -ms-flex-pack: justify;
+            justify-content: space-between;
+            border-bottom: 2px solid #e1e1e1;
+            padding-bottom: 20px
+        }
+
+        .layout .content .chat .chat-header .chat-header-user {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center
+        }
+
+        .layout .content .chat .chat-header .chat-header-user figure {
+            margin-right: 1rem
+        }
+
+        .layout .content .chat .chat-header .chat-header-user h5 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 0;
+            line-height: 1
+        }
+
+        .layout .content .chat .chat-header .chat-header-action ul {
+            margin-bottom: 0
+        }
+
+        .layout .content .chat .chat-header .chat-header-action ul > li > a {
+            font-size: 16px
+        }
+
+        .layout .content .chat .chat-body {
+            -webkit-box-flex: 1;
+            -webkit-flex: 1;
+            -moz-box-flex: 1;
+            -ms-flex: 1;
+            flex: 1;
+            margin: 20px 0
+        }
+
+        .layout .content .chat .chat-body:not(.no-message) {
+            overflow: auto
+        }
+
+        .layout .content .chat .chat-body.no-message {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none
+        }
+
+        .layout .content .chat .chat-body.no-message .no-message-container {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            -webkit-justify-content: center;
+            -moz-box-pack: center;
+            -ms-flex-pack: center;
+            justify-content: center;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
+            -moz-box-orient: vertical;
+            -moz-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            height: 100%
+        }
+
+        .layout .content .chat .chat-body.no-message .no-message-container i {
+            font-size: 7em;
+            opacity: .15;
+            margin-bottom: 15px
+        }
+
+        .layout .content .chat .chat-body.no-message .no-message-container p {
+            font-size: 16px;
+            color: #828282
+        }
+
+        .layout .content .chat .chat-body .messages {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -webkit-flex-direction: column;
+            -moz-box-orient: vertical;
+            -moz-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            -webkit-box-align: start;
+            -webkit-align-items: flex-start;
+            -moz-box-align: start;
+            -ms-flex-align: start;
+            align-items: flex-start
+        }
+
+        .layout .content .chat .chat-body .messages .message-item {
+            max-width: 75%;
+            margin-bottom: 20px
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-content {
+            background: #ffdfdf;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-content.message-file {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            word-break: break-word
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-content.message-file .file-icon {
+            font-size: 24px;
+            margin-right: 1rem;
+            color: #828282
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-content.message-file ul {
+            margin-top: 3px;
+            margin-bottom: 0
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-content.message-file ul li.list-inline-item {
+            margin-left: 0;
+            margin-right: .5rem
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-action {
+            color: #828282;
+            margin-top: 5px;
+            font-style: italic;
+            font-size: 12px
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-action .ti-double-check:after, .layout .content .chat .chat-body .messages .message-item .message-action .ti-double-check:before {
+            content: "\e64c";
+            font-family: themify
+        }
+
+        .layout .content .chat .chat-body .messages .message-item .message-action .ti-double-check:after {
+            margin-left: -4px
+        }
+
+        .layout .content .chat .chat-body .messages .message-item.outgoing-message {
+            margin-left: auto
+        }
+
+        .layout .content .chat .chat-body .messages .message-item.outgoing-message .message-content {
+            background-color: #cdcdcd
+        }
+
+        .layout .content .chat .chat-body .messages .message-item.outgoing-message .message-action {
+            text-align: right
+        }
+
+        .layout .content .chat .chat-footer {
+            border-top: 2px solid #e1e1e1;
+            padding-top: 20px
+        }
+
+        .layout .content .chat .chat-footer form {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+            padding: 10px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            -webkit-box-align: center;
+            -webkit-align-items: center;
+            -moz-box-align: center;
+            -ms-flex-align: center;
+            align-items: center;
+            background-color: #a6a6a4
+        }
+
+        .layout .content .chat .chat-footer form .form-buttons {
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex
+        }
+
+        .layout .content .chat .chat-footer form .form-buttons .btn {
+            margin-left: .5rem
+        }
+
+        .layout .content .chat .chat-footer form input[type=text] {
+            border: none;
+            background-color: inherit
+        }
+
+        .layout .content .chat .chat-footer form input[type=text]:focus {
+            -webkit-box-shadow: none;
+            -moz-box-shadow: none;
+            box-shadow: none
+        }
+
+        .layout .content .chat + .sidebar-group {
+            margin-right: 0
+        }
+
+        .layout .content .chat + .sidebar-group .sidebar {
+            margin-left: 30px;
+            margin-right: 0
+        }
+
+        .list-inline {
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 500px;
+        }
+
+        .menu-left {
+        }
+
+        .menu-right {
+        }
+
+        .rounded-circle {
+            -webkit-border-radius: 50% !important;
+            -moz-border-radius: 50% !important;
+            border-radius: 50% !important;
+        }
+
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="layout">
+
+        <!-- navigation -->
+
+        <!-- ./ navigation -->
+
+        <!-- content -->
+        <div class="content">
+
+            <!-- sidebar group -->
+
+            <!-- ./ sidebar group -->
+
+            <!-- chat -->
+            <div class="chat">
+                <div class="chat-header" style="">
+                    {#                    <div class="chat-header-user">#}
+                    {#                        <figure class="avatar avatar-lg">#}
+                    {#                            <img src="/static/chats/media/img/man_avatar3.jpg" class="rounded-circle">#}
+                    {#                        </figure>#}
+                    {#                        <div>#}
+                    {#                            <h5>{{ c_u.account_str }}</h5>#}
+                    {#                            <small class="text-muted">#}
+                    {#                                <i>注册时间:{{ c_u.create_time }}</i>#}
+                    {#                                <i>到期时间:{{ c_u.expiration }}</i>#}
+                    {#                                <i>国家地区:{{ c_u.user_country }}</i>#}
+                    {#                                <i>类型:{{ c_u.user_type }}</i>#}
+                    {##}
+                    {#                            </small>#}
+                    {##}
+                    {#                        </div>#}
+                    {#                    </div>#}
+                    <div class="chat-header-action">
+                        <div class="menu">
+                            <div class="menu-left">
+                                <p>用户：<a
+                                        href="/xadmin/account/useraccount/{{ c_u.id }}/update">{{ c_u.account_str }}</a>
+                                </p>
+                                <p>注册时间：{{ c_u.create_time }}</p>
+                                <p>到期时间：{{ c_u.expiration }}</p>
+                            </div>
+                            <div class="menu-right">
+                                <p>类型：{{ c_u.user_type }}</p>
+                                <p>平台：{{ c_u.os }}</p>
+                                <p>国家地区：{{ c_u.user_country }}</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="chat-body" style="overflow-y: scroll !important; "> <!-- .no-message -->
+                    <!--
+                    <div class="no-message-container">
+                        <i class="fa fa-comments-o"></i>
+                        <p>Select a chat to read messages</p>
+                    </div>
+                    -->
+                    <div class="messages">
+
+
+                    </div>
+                </div>
+                <div class="chat-footer">
+                    <form action="">
+                        <input type="text" class="form-control" placeholder="Recipient's username"
+                               aria-label="Recipient's username" aria-describedby="button-addon2"
+                               style="border-radius: 5px;font-size: 18px;">
+                        <div class="form-buttons">
+
+                            <button class="btn btn-light btn-floating" id="filelabel" type="button">
+                                <i class="fa fa-paperclip"></i>
+
+                            </button>
+                            <input id="file" type="file" name="fileupload" style="display: none">
+
+
+                            <button class="btn btn-primary btn-floating" type="submit">
+                                <i class="fa fa-share" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- ./ chat -->
+
+
+        </div>
+        <!-- ./ content -->
+    </div>
+
+{% endblock %}
+
+
+{% block extrabody %}
+
+
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="/static/xadmin/dist/echarts.min.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="/static/xadmin/vendor/DataTables-1.10.20/js/jquery.dataTables.js"></script>
+
+    <!-- Popper.js -->
+    <script src="/static/chats/js/popper.min.js"></script>
+
+
+    <!-- Nicescroll -->
+    <script src="/static/chats/js/jquery.nicescroll.min.js"></script>
+
+    <!-- Soho -->
+    <script src="/static/chats/js/soho.min.js"></script>
+
+
+
+    <!-- Examples -->
+    <script src="/static/chats/js/examples.js"></script>
+    <script type="text/javascript">
+
+        //文件上传
+        var uploadinput = document.getElementById("file");
+        $("#filelabel").click(function () {
+            $("#file").click();
+        });
+        uploadinput.addEventListener("change", function () {
+            if (uploadinput.files[0]) {
+                var file_name = uploadinput.files[0].name;
+                if (uploadinput.files[0].size > 1024 * 1024 * 4) {
+                    alert('文件不能大于4M');
+                    throw new Exception("文件不能大于4M");
+                }
+                var formData = new FormData();
+                formData.append("file", uploadinput.files[0]);
+                formData.append("i", user_id);
+                $.ajax({
+                    url: "/e/file/",
+                    type: "POST",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (data, status,) {
+                        if (status === "success") {
+                            alert("上传成功！");
+                            if (isAssetTypeAnImage(file_name)) {
+                                $('.layout .content .chat .chat-footer form').find('input[type=text]').val('il@:' + file_name)
+                            } else {
+                                $('.layout .content .chat .chat-footer form').find('input[type=text]').val('fl@:' + file_name)
+                            }
+                            $('.layout .content .chat .chat-footer form').find('button[type=submit]').submit()
+
+
+                        } else {
+                            alert('上传失败！');
+                        }
+                    },
+                    error: function () {
+                        alert("上传失败！");
+                    }
+                });
+                hasFile = 1;
+                // uploadimg();//上传文件对接后台的具体操作
+            } else {
+                console.log("未选择文件");
+                hasFile = 0;
+
+            }
+        });
+
+
+        //判断是否是图片
+        function isAssetTypeAnImage(file_name) {
+            var index = file_name.lastIndexOf(".");
+            var ext = file_name.substr(index + 1);
+            return [
+                'png', 'jpg', 'jpeg', 'bmp', 'gif', 'webp', 'psd', 'svg', 'tiff'].indexOf(ext.toLowerCase()) !== -1;
+        }
+
+        //时间转换
+        var dateFormat = function (timestamp, formats) {
+            // formats格式包括
+            // 1. Y-m-d
+            // 2. Y-m-d H:i:s
+            // 3. Y年m月d日
+            // 4. Y年m月d日 H时i分
+            formats = formats || 'Y-m-d';
+
+            var zero = function (value) {
+                if (value < 10) {
+                    return '0' + value;
+                }
+                return value;
+            };
+
+            var myDate = timestamp ? new Date(timestamp) : new Date();
+
+            var year = myDate.getFullYear();
+            var month = zero(myDate.getMonth() + 1);
+            var day = zero(myDate.getDate());
+
+            var hour = zero(myDate.getHours());
+            var minite = zero(myDate.getMinutes());
+            var second = zero(myDate.getSeconds());
+
+            return formats.replace(/Y|m|d|H|i|s/ig, function (matches) {
+                return ({
+                    Y: year,
+                    m: month,
+                    d: day,
+                    H: hour,
+                    i: minite,
+                    s: second
+                })[matches];
+            });
+        };
+
+
+        //初始化
+        var user_id = {{ c_u.id }}
+        var u_name = '{{ c_u.account_str }}'
+        var si = {{ user.id }}
+        var os = "{{ c_u.os }}"
+        var u_pkg = "{{ pkg }}"
+        var lastdt = 0
+        var downloadUrl = "/e/load/?i=" + user_id + "&f="
+
+        $(function () {
+            $.ajax({
+                url: '/ccc/ii/' + "?i=" + user_id,// 需要修改
+                contentType: "application/json;charset=utf-8",
+                type: "get",
+                dataType: "json",
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                    xhr.setRequestHeader("P", u_pkg)
+                },
+                complete: function (data) {
+
+                },
+                success: function (data) {
+                    lastdt = data[data.length - 1].timestamp
+                    var obj = $('.layout .content .chat .chat-body .messages')
+                    $.each(data, function (idx, clm) {
+                        var dt = dateFormat(Number(clm.timestamp), "Y/m/d H:i:s")
+                        var t = ''
+                        var f_name = ''
+                        if (clm.is_back) {
+                            t = 'outgoing-message'
+                        }
+                        var startwith = clm.msg.substr(0, 3)
+                        if (startwith === "il@") {
+                            f_name = clm.msg.substr(4,)
+                            obj.append('<div class="message-item ' + t + ' "><div class="message-content"><div style="width: 300px"><img src="/media/@' + user_id + '-' + f_name + '" class="img-responsive center-block"><ul class="list-inline"><li class="list-inline-item"><a href="' + downloadUrl + f_name + '">Download</a></li></ul></div></div><div class="message-action">' + dt + '</div></div>')
+                        } else if (startwith === "fl@") {
+                            f_name = clm.msg.substr(4,)
+                            obj.append('<div class="message-item ' + t + ' "><div class="message-content message-file"><div class="file-icon"><i class="fa fa-file"></i></div><div><div>' + f_name + '</div><li class="list-inline-item"><a href="' + downloadUrl + f_name + '">Download</a></li></div></div><div class="message-action">' + dt + '</div></div>')
+
+                        } else {
+                            obj.append('<div class="message-item ' + t + '"><div class="message-content">' + clm.msg + '</div><div class="message-action">' + dt + ' ' + (t ? '<i class="ti-check"></i>' : '') + '</div></div>');
+
+                        }
+
+                    });
+                    var chat_body = $('.layout .content .chat .chat-body');
+                    if (chat_body.length > 0) {
+                        chat_body.scrollTop(chat_body.get(0).scrollHeight, -1);
+                    }
+                    {#setTable("un_msg", data, [{'title': 'id'}, {'title': '用户名称'}, {'title': '平台'}, {'title': '回复'}, {'title': '时间'}]);#}
+                    {#$("#un_msg").on("click", "tr td:nth-child(2)", function () {#}
+                    {#    var name = this.parentNode.firstElementChild.textContent#}
+                    {#var name = $(this).text();#}
+                    {#    console.log(name);#}
+                }
+            });
+
+
+        })
+        //初始化结束
+
+        //翻译
+        $('body').on("click", ".message-content", function () {
+            if (!$(this).hasClass('message-file')) {
+                if (!$(this).hasClass('t-b')) {
+                    $(this).addClass('t-b')
+                    var str = $(this).text()
+                    console.log(str)
+                    if (str && str !== 'Download') {
+                        Ctranslate(str,this)
+                        {#$(this).html("<p>" + str + "</p><p style='color: #00aff0'>" + ret_text + "</p>")#}
+                    }
+                }
+            }
+
+        });
+
+        //翻译end
+        function Ctranslate(text,obj) {
+            var ret = ""
+            $.ajax({
+                url: '/e/t/',
+                contentType: "application/json;charset=utf-8",
+                type: "post",
+                dataType: "json",
+                data: JSON.stringify({"text": text}),
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                    xhr.setRequestHeader("P", u_pkg)
+                },
+                complete: function (data) {
+
+                },
+                success: function (data) {
+                    $(obj).html("<p>" + text + "</p><p style='color: #00aff0'>" + data.text + "</p>")
+                },
+                error: function () {
+                     $(obj).html("<p>" + text + "</p><p style='color: #00aff0'>" + "error" + "</p>")
+
+                }
+            });
+            return ret
+        }
+
+
+    </script>
+
+{% endblock %}
+
+{% block extrahead %}
+
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/xadmin/vendor/DataTables-1.10.20/css/jquery.dataTables.css">
+    <link href="/static/xadmin/vendor/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet"/>
+    <link href="/static/xadmin/vendor/jQuery-tags-input/bootstrap-tagsinput.css" rel="stylesheet"/>
+    {#    <link href="/static/chats/css/font-awesome.min.css" rel="stylesheet"/>#}
+    {#    <link rel="stylesheet" href="/static/chats/css/soho.min.css">#}
+
+{% endblock %}
+
+
+

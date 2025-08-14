@@ -1,0 +1,93 @@
+{% load i18n %}
+<div class="btn-group export">
+    <a class="dropdown-toggle btn btn-default btn-sm" data-toggle="modal" data-target=".bs-example-modal-lg"
+       onclick="get_import_type(this)" href="#">
+        <i class="fa fa-upload"></i> 检查配置 <span class="caret"></span>
+    </a>
+
+    <script>
+        function get_import_type(th) {
+            $('#import_title').text($(th).text())
+            $('#submit_upload').attr('name', $(th).attr('name'))
+            $("input[name='imp_type']").val($(th).attr('name'))
+            $('#export-modal-import').modal({
+                backdrop: 'static'
+            })
+
+
+        }
+
+        function get_import_result() {
+            $("#imp").submit();
+            document.getElementById('import-result-alert').style.display = 'block';
+            {#document.getElementById('submit_upload').style.display='none';#}
+            document.getElementById('submit_upload_b').style.display = 'none';
+            var t = setInterval(function () {
+                //获取iframe标签里body元素里的文字。
+                var word = $("iframe[name='tg']").contents().find("body").text()
+                console.log(word)
+                if (word != "") {
+                    console.log(word)
+                    $('#import-result-alert').html($("iframe[name='tg']").contents().find("body").children())
+                    clearInterval(t);   //清除定时器
+                }
+
+            }, 1000);
+        }
+
+        $(function () {
+            $('.drop_dom>h5,.drop_dom>h5+ul>li>h6').unbind('click').click(function (e) {
+                if ($(this).next().is(':visible')) {
+                    $(this).next().slideUp()
+                } else {
+                    $(this).next().slideDown()
+                }
+            })
+        })
+
+        function close_reset() {
+            if (document.getElementById('import-result-alert').style.display == 'block') {
+                location.reload()
+            }
+        }
+    </script>
+
+    <iframe name="tg" id="tg" style="display: none;"></iframe>
+
+    <div id="export-modal-import" class="modal fade bs-example-modal-lg">
+        <div class="modal-dialog modal-lg" style="width: 1300px">
+            <div class="modal-content">
+                <form id='imp' method="post" action="/check-server-pool-conf/" target="tg"
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"
+                                onclick="close_reset()">×
+                        </button>
+                        <h4 class="modal-title" id="import_title">检查配置是否正确</h4>
+                    </div>
+                    <div class="modal-body">
+
+                        <input type="hidden" name="imp_type">
+                        <div class="alert alert-success" role="alert" style="display:none;" id="import-result-alert">
+                            检查中
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal"
+                                onclick="close_reset()">{% trans "Close" %}</button>
+                        <button class="btn btn-success" type="button" id="submit_upload_b" style="display: inline"
+                                onclick="get_import_result()"> 检查
+                        </button>
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dalog -->
+    </div><!-- /.modal -->
+
+
+</div>
+
+

@@ -1,0 +1,387 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+
+{% block content-nav %}
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs" style="margin-bottom: 10px;">
+        <style>
+            #xadmin-form > ul {
+                margin-right: 20px;
+            }
+
+            #xadmin-form > ul > li {
+                margin-right: 20px;
+            }
+
+            #xadmin-form ul.dropdown-menu {
+                left: 0;
+                top: 120%;
+            }
+
+            #xadmin-form .dropdown-submenu .popover {
+                left: 0;
+                top: 120%;
+            }
+
+            #xadmin-form .search-group {
+                top: 8px;
+            }
+
+            #xadmin-form .search-group .btn-primary + span {
+                left: 10px;
+            }
+
+            #filter-arr nav button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
+            #filter-arr nav > span.remove-form {
+                border: 1px solid #000;
+                padding: 5px;
+                margin: 0 15px;
+                cursor: pointer;
+                display: inline-block;
+            }
+
+            #filter-arr nav:first-of-type span.remove-form {
+                display: none;
+            }
+
+            .dataTables_length {
+                width: 40%;
+                float: left;
+            }
+
+            ul.bar_tabs {
+                margin: 21px 0 14px;
+                padding-left: 14px;
+            }
+        </style>
+        <div class="navbar-header">
+            <a class="navbar-brand" data-toggle="collapse" data-target="#top-nav .navbar-collapse">
+                试用转订阅
+            </a>
+        </div>
+
+        <!-- 筛选条件 -->
+        <form id="xadmin-form">
+            <!-- 搜索国家 -->
+            <ul class="nav navbar-nav">
+                <li class="dropdown-submenu">
+                    <a>国家</a>
+                    <ul class="dropdown-menu" data-type="countrycode">
+                        {% for code, name in countries %}
+                            <li value="{{ code }}"><a href="javascript:;">{{ code }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="dropdown-submenu">
+                    <a>项目</a>
+                    <ul class="dropdown-menu" data-type="items">
+                        {% for code, name in items %}
+                            <li value="{{ code }}"><a href="javascript:;">{{ code }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+
+                <li class="dropdown-submenu">
+                    <a>套餐</a>
+                    <ul class="dropdown-menu" data-type="sku">
+                        {% for i in sku %}
+                            <li value=""><a href="javascript:;">{{ i }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+            <div class="input-group search-group ">
+                <input id="startdate" name="dtBegin" class=" multiple-form-stop form-control date-picker"
+                       placeholder="Start Time" style="width: 100px">
+                <span class="input-group-addon">to</span>
+                <input id="enddate" name="dtEnd" class=" multiple-form-stop form-control date-picker"
+                       placeholder="End Time" style="width: 100px">
+                <span class="input-group-addon">:</span>
+                <input id="period" name="period" class=" multiple-form-stop form-control " placeholder="Period"
+                       style="width: 50px">
+                <span class="input-group-btn btn btn-primary" id="submit-form">Submit</span>
+            </div>
+        </form>
+
+        <a id="loading-indicator" style='display:none' class="navbar-brand">
+            加载中...
+        </a>
+    </div>
+
+    <!-- fiter标签组 -->
+    <ul id="filter-arr" style="padding: 0px 10px">
+        <nav style="float: inherit;display: block;padding: 0px 10px;margin-bottom: 2px;"
+             class="navbar-header filter-item breadcrumb" data-value=0>
+        </nav>
+    </ul>
+
+        <div class="navbar navbar-xs">
+        <ul class="list-group list-group-flush" >
+            <li class="list-group-item"><b>新增数</b>指当日新增设备数。注：目前Android设备没有区分lite和pro，所以Android的新增数包括了lite和Pro</li>
+            <li class="list-group-item"><b>订阅续订数：</b>指后续转为付费的当日订阅订单总数</li>
+            <li class="list-group-item"><b>续订订单数：</b>指当日订阅订单，后续产生的付费订单总数</li>
+            <li class="list-group-item"><b>订阅率</b> = 订阅数 / 新增设备数</li>
+            <li class="list-group-item"><b>付费率</b> = 订阅续订数 / 新增设备数</li>
+            <li class="list-group-item"><b>订阅转付费率</b> = 订阅续订数 / 订阅数</li>
+        </ul>
+
+    </div>
+{% endblock %}
+
+{% block content %}
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div class="bs-example" data-example-id="condensed-table">
+        <ul id="myTab" class="nav nav-tabs bar_tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#tab_content1" id="home-tab" role="tab" data-toggle="tab"
+                                                      aria-expanded="true">Total</a>
+            </li>
+            <li role="presentation" class=""><a href="#tab_content2" role="tab" id="profile-tab" data-toggle="tab"
+                                                aria-expanded="false">按国家</a>
+            </li>
+        </ul>
+        <div id="myTabContent" class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="tab_content1" aria-labelledby="home-tab">
+                <table id="total_data_table" class="table table-striped table-bordered  dt-responsive nowrap"
+                       cellspacing="0" width="100%">
+                    <thead>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="tab_content2" aria-labelledby="profile-tab">
+                <table id="data_by_country_table" class="table table-striped table-bordered  dt-responsive nowrap"
+                       cellspacing="0" width="100%">
+                    <thead>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="id_chart_main" class="row" style="height:800px; "></div>
+{% endblock %}
+
+
+{% block extrabody %}
+    <link rel="stylesheet" type="text/css" href="/static/xadmin/vendor/DataTables-1.10.20/css/jquery.dataTables.css"/>
+    <script type="text/javascript" src="/static/xadmin/vendor/DataTables-1.10.20/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="/static/xadmin/vendor/datatables.net/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="/static/xadmin/vendor/datatables.net-buttons/js/dataTables.buttons.js"></script>
+    <script type="text/javascript" src="/static/xadmin/vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script type="text/javascript"
+            src="/static/xadmin/vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ajaxSend(function (event, request, settings) {
+            $('#loading-indicator').show();
+        });
+
+        $(document).ajaxComplete(function (event, request, settings) {
+            $('#loading-indicator').hide();
+        });
+        $(function () {
+            var total_data_table = undefined;
+            var data_by_country_table = undefined;
+            var filterForm =
+                {
+                    countrycode: [],
+                    sku: [],
+                    items: []
+                }
+
+            $(".date-picker").datepicker({
+                autoclose: true,
+                clearBtn: true,
+                todayBtn: "linked",
+                todayHighlight: true,
+                format: "yyyy-mm-dd"
+            });
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            $('body').on('click', '.c-remove', function () {
+                //删除改标签时，目标表单会移至当前
+                var type = $(this).attr('data-type')
+                var val = $(this).text()
+                filterForm[type].splice($.inArray(val, filterForm[type]), 1)
+                setButton()
+            });
+
+            $('#xadmin-form ul ul a').click(function () {
+                addButton(this.text, $(this).parents('ul').attr('data-type'))
+            })
+
+            //设置filter按钮
+            function setButton() {
+                var dom = '<button class="remove-form pull-right btn-danger btn-xs navbar-btn">Clear</button>'
+                for (let i in filterForm) {
+                    if (filterForm[i].length > 0) {
+                        dom += i + ":"
+                        if (filterForm[i] instanceof Array) {
+                            for (let v in filterForm[i]) {
+                                dom += '<button data-type=' + i +
+                                    ' type="button" class="btn btn-primary btn-xs navbar-btn  c-remove"style="margin-top: 8px;">' + filterForm[i][v] +
+                                    '</button>'
+                            }
+                        } else {
+                            dom += '<button data-type=' + i +
+                                ' type="button" class="btn btn-primary btn-xs navbar-btn  c-remove "style="margin-top: 8px;">' + filterForm[i] +
+                                '</button>'
+                        }
+                    }
+                }
+                $('#filter-arr>nav').css({'background': 'transparent'}).eq(0).html(dom).css({'background': 'rgba(0,0,0,0.2)'})
+            }
+
+            //添加筛选类别，可复选
+            function addButton(str, type) {
+                if (filterForm[type].indexOf(str) == -1) {
+                    filterForm[type].push(str)
+                    setButton()
+                } else {
+                    return false
+                }
+            }
+
+            $('#filter-arr').on('click', 'nav button.remove-form', function () {
+                $(this).parent().empty()
+                filterIndex = 0
+                filterForm = {
+                    countrycode: [],
+                    sku: [],
+                    items: []
+                }
+            });
+
+            function setTable(var_table, id_table, data, columns) {
+                var tbl_options = {
+                    destroy: true,
+                    "stateLoaded": function (settings, data) {
+                        console.log('stateLoaded')
+                        var hide_clm_ids = [];
+                        $.each(data.columns, function (idx, clm) {
+                            if (!clm.visible)
+                                hide_clm_ids.push(idx)
+                        });
+                        $('#select_hide_column').multiselect('select', hide_clm_ids);
+                    },
+                    "pageLength": 10,
+                    "order": [],
+                    dom: "Blfrtip",
+                    buttons: [
+                        {
+                            extend: "copy",
+                            className: "btn-sm"
+                        },
+                        {
+                            extend: "csv",
+                            className: "btn-sm"
+                        },
+                        {
+                            extend: "excel",
+                            className: "btn-sm"
+                        },
+                        {
+                            extend: "pdfHtml5",
+                            className: "btn-sm"
+                        }
+                    ],
+                    responsive: true
+                }
+                tbl_options.data = data;
+                tbl_options.columns = columns;
+
+                if (var_table != undefined) {
+                    var_table.destroy();
+                    $('#' + id_table).empty();
+                }
+                var_table = $('#' + id_table).DataTable(tbl_options);
+                return var_table
+            }
+
+            //检索相关数据,提交
+            $('#submit-form').click(function () {
+                if ($('#startdate').val().length == 0 || $('#enddate').val().length == 0) {
+                    alert('时间不能为空')
+                } else {
+                    var data_req = {
+                        data: filterForm,
+                        startdate: $('#startdate').val(),
+                        enddate: $('#enddate').val(),
+                        period: $('#period').val()
+                    }
+                    $.ajax({
+                        url: '/pay_report2/',
+                        contentType: "application/json;charset=utf-8",
+                        type: "post",
+                        dataType: "json",
+                        data: JSON.stringify(data_req),
+                        beforeSend: function (xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                        },
+                        success: function (data) {
+                            if (data.code == 0) {
+                                console.log('data', data)
+                                var billing_stats_list = data.result.data.billing_stats_list
+                                var columns = data.result.columns
+                                total_data_table = setTable(total_data_table, 'total_data_table', billing_stats_list, columns)
+
+                                var billing_stats_per_country_list = data.result.data.billing_stats_per_country_list
+                                data_by_country_table = setTable(data_by_country_table, 'data_by_country_table', billing_stats_per_country_list, columns)
+                                setEcharts(data.result.data.all_series_data)
+                            }
+                        }
+                    });
+                }
+            })
+
+            chart_options = {
+                tooltip: {
+                    trigger: 'axis'
+                }
+            };
+            myChart = echarts.init(document.getElementById('id_chart_main'));
+            myChart.setOption(chart_options);
+
+            //设置图表
+            function setEcharts(option) {
+                // 使用刚指定的配置项和数据显示图表。
+                console.log('echart option', option)
+                myChart.clear();
+                myChart.setOption(option);
+                myChart.on('dblclick', function (params) {
+                    console.log('dblclick', params.componentType);
+                });
+            };
+        });
+
+        function resizeDom() {//通过窗体高宽计算容器高宽，渲染echart图表的div的宽高度已达到自适应目的
+            var chart_dom = document.getElementById('id_chart_main');
+            chart_dom.style.width = (chart_dom.parentElement.clientWidth - 15) + 'px';
+
+            myChart.resize(); //重绘echart图表
+        };
+
+        window.addEventListener("resize", () => {
+            resizeDom(); //重置div宽高度
+        });
+    </script>
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="/static/xadmin/dist/echarts.min.js"></script>
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+{% endblock %}
+
+
+

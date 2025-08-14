@@ -1,0 +1,1191 @@
+{% extends 'xadmin/base_site.html' %}
+{% load i18n xadmin_tags %}
+{% block content-nav %}
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs" style="margin-bottom: 10px;">
+        <ul class="nav navbar-nav " style="margin: 11px;" id="country-select-ul">
+            <select class="selectpicker form-control " title="请选择国家" data-live-search="true"
+                    id="country-select">
+                {% for k in ctr %}
+                    <option value="{{ k.0 }}">{{ k.1 }}</option>
+                {% endfor %}
+            </select>
+        </ul>
+
+        <div class="input-group col-lg-2" style="margin: 11px">
+            <span class="input-group-addon">最小版本</span>
+            <input type="text" id="min_v" class="form-control" placeholder="min ver" value="0.0.0">
+        </div>
+
+        <div class="input-group col-lg-2" style="margin: 11px">
+            <span class="input-group-addon">最大版本</span>
+            <input type="text" id="max_v" class="form-control" placeholder="max ver" value="9.9.9">
+        </div>
+
+
+        <span class="">是否激活</span>
+        <input type="checkbox" id="is_active" placeholder="is active" style="margin-top: 20px;">
+
+
+    </div>
+    <div class="navbar content-navbar navbar-default navbar-xs" data-toggle="breakpoint"
+         data-class-xs="navbar content-navbar navbar-inverse navbar-xs"
+         data-class-sm="navbar content-navbar navbar-default navbar-xs" style="margin-bottom: 10px;">
+        <style>
+            .dataTables_length {
+                width: 40%;
+                float: left;
+            }
+
+            .panel-group .panel {
+                margin-bottom: 0;
+                overflow: unset;
+                border-radius: 4px;
+            }
+
+            .input-group .form-control {
+                padding-left: 1px;
+                padding-right: 1px;
+            }
+
+            /* radio */
+            label.bui-radios-label input {
+                position: absolute;
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            label.bui-radios-label .bui-radios {
+                display: inline-block;
+                position: relative;
+                width: 13px;
+                height: 13px;
+                background: #FFFFFF;
+                border: 1px solid #979797;
+                border-radius: 50%;
+                vertical-align: -2px;
+            }
+
+            label.bui-radios-label input:checked + .bui-radios:after {
+                position: absolute;
+                content: "";
+                width: 7px;
+                height: 7px;
+                background-color: #fff;
+                border-radius: 50%;
+                top: 3px;
+                left: 3px;
+            }
+
+            label.bui-radios-label input:checked + .bui-radios {
+                background: #00B066;
+                border: 1px solid #00B066;
+            }
+
+            label.bui-radios-label input:disabled + .bui-radios {
+                background-color: #e8e8e8;
+                border: solid 1px #979797;
+            }
+
+            label.bui-radios-label input:disabled:checked + .bui-radios:after {
+                background-color: #c1c1c1;
+            }
+
+            label.bui-radios-label.bui-radios-anim .bui-radios {
+                -webkit-transition: background-color ease-out .3s;
+                transition: background-color ease-out .3s;
+            }
+
+            /* checkbox */
+            label.bui-checkbox-label input {
+                position: absolute;
+                visibility: hidden;
+                opacity: 0;
+            }
+
+            label.bui-checkbox-label .bui-checkbox {
+                display: inline-block;
+                position: relative;
+                width: 13px;
+                height: 13px;
+                background: #FFFFFF;
+                border: 1px solid #979797;
+                border-radius: 2px;
+                vertical-align: -2px;
+            }
+
+            label.bui-checkbox-label input:checked + .bui-checkbox:after {
+                color: #FFFFFF;
+                font-family: iconfont;
+                content: "\e600";
+                width: 13px;
+                height: 13px;
+                font-size: 13px;
+                line-height: 13px;
+                position: absolute;
+                top: 1px;
+                left: 0;
+            }
+
+            label.bui-checkbox-label input:checked + .bui-checkbox {
+                background: #00B066;
+                border: 1px solid #00B066;
+            }
+
+            label.bui-checkbox-label input:disabled + .bui-checkbox {
+                background-color: #e8e8e8;
+                border: solid 1px #979797;
+            }
+
+            label.bui-checkbox-label input:disabled:checked + .bui-checkbox:after {
+                color: #c1c1c1;
+            }
+
+            label.bui-checkbox-label.bui-checkbox-anim .bui-checkbox {
+                -webkit-transition: background-color ease-out .3s;
+                transition: background-color ease-out .3s;
+            }
+
+            label.bui-switch-label input {
+                position: absolute;
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            label.bui-switch-label input:checked {
+                border-color: #64bd63;
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63;
+            }
+
+            label.bui-switch-label input:checked:before {
+                left: 27px;
+            }
+
+            label.bui-switch-label input:disabled + .bui-switch {
+                background-color: #e8e8e8;
+                border: solid 1px #dfdfdf;
+            }
+
+            label.bui-switch-label input:disabled + .bui-switch:before {
+                background-color: #c1c1c1;
+            }
+
+            label.bui-switch-label input:disabled:checked + .bui-switch {
+                background-color: #e8e8e8;
+                box-shadow: #e8e8e8 0 0 0 16px inset;
+                border: solid 1px #dfdfdf;
+            }
+
+            label.bui-switch-label input:disabled:checked + .bui-switch:before {
+                background-color: #c1c1c1;
+            }
+
+            label.bui-switch-label .bui-switch {
+                width: 50px;
+                height: 25px;
+                position: relative;
+                border: 1px solid #dfdfdf;
+                background-color: #fdfdfd;
+                box-shadow: #dfdfdf 0 0 0 0 inset;
+                border-radius: 20px;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+                background-clip: content-box;
+                display: inline-block;
+                -webkit-appearance: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                outline: none;
+            }
+
+            label.bui-switch-label .bui-switch:before {
+                content: '';
+                width: 23px;
+                height: 23px;
+                position: absolute;
+                top: 1px;
+                left: 1px;
+                border-radius: 20px;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+                background-color: #fff;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            }
+
+            label.bui-switch-label input:checked + .bui-switch {
+                border-color: #64bd63;
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63;
+            }
+
+            label.bui-switch-label input:checked + .bui-switch:before {
+                left: 27px;
+            }
+
+            label.bui-switch-label.bui-switch-anim {
+                -webkit-transition: border cubic-bezier(0, 0, 0, 1) 0.4s, box-shadow cubic-bezier(0, 0, 0, 1) 0.4s;
+                transition: border cubic-bezier(0, 0, 0, 1) 0.4s, box-shadow cubic-bezier(0, 0, 0, 1) 0.4s;
+            }
+
+            label.bui-switch-label.bui-switch-anim .bui-switch:before {
+                -webkit-transition: left 0.3s;
+                transition: left 0.3s;
+            }
+
+            label.bui-switch-label.bui-switch-anim input:checked + .bui-switch {
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63;
+                -webkit-transition: border ease 0.4s, box-shadow ease 0.4s, background-color ease 1.2s;
+                transition: border ease 0.4s, box-shadow ease 0.4s, background-color ease 1.2s;
+            }
+
+            label.bui-switch-label.bui-switch-anim input:checked + .bui-switch:before {
+                -webkit-transition: left 0.3s;
+                transition: left 0.3s;
+            }
+
+            label.bui-switch-label.bui-switch-animbg {
+                -webkit-transition: background-color ease 0.4s;
+                transition: background-color ease 0.4s;
+            }
+
+            label.bui-switch-label.bui-switch-animbg .bui-switch:before {
+                -webkit-transition: left 0.3s;
+                transition: left 0.3s;
+            }
+
+            label.bui-switch-label.bui-switch-animbg input:checked + .bui-switch {
+                box-shadow: #dfdfdf 0 0 0 0 inset;
+                background-color: #64bd63;
+                -webkit-transition: border-color 0.4s, background-color ease 0.4s;
+                transition: border-color 0.4s, background-color ease 0.4s;
+            }
+
+            label.bui-switch-label.bui-switch-animbg input:checked + .bui-switch:before {
+                -webkit-transition: left 0.3s;
+                transition: left 0.3s;
+            }
+
+            .input-group {
+                float: left !important;
+                position: relative;
+                display: table;
+                border-collapse: separate;
+            }
+
+            .btn-default {
+                border: 1px solid #dfd7c9;
+                color: #5f3838;
+                background-color: #ffffff;
+            {#border-color: transparent;#}
+            }
+
+            .navbar-default {
+                background-color: #f8f8f8;
+                border-color: #e7e7e7;
+            }
+
+            .row {
+                margin-left: -5px;
+                margin-top: 6px;
+            }
+
+            .ad_source_t {
+                color: #ff0eb4;
+            }
+
+            .no_need {
+                color: red;
+            }
+
+
+            /*# sourceMappingURL=radio-checkbox.css.map */
+
+
+        </style>
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="input-group">
+                    <span class="input-group-addon">ad_show_limit</span>
+                    <input type="text" id="ad_show_limit" class="form-control" placeholder="ad_show_limit"
+                           value="{{ ads_content.ad_show_limit }}">
+                </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+            <div class="col-lg-3">
+                <div class="input-group">
+                    <span class="input-group-addon">ad_click_limit</span>
+                    <input type="text" id="ad_click_limit" class="form-control"
+                           placeholder="ad_click_limit"
+                           value="{{ ads_content.ad_click_limit }}">
+                </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-info top_show_json"><i class="glyphicon glyphicon-book"></i>
+                    显示总体json
+                </button>
+                <button type="button" class="btn btn-success top_add_ad_site"><i class="glyphicon glyphicon-plus"></i>
+                    添加广告位
+                </button>
+                <button type="button" class="btn btn-primary save_json"><i class="glyphicon glyphicon-save"></i> save
+                </button>
+            </div>
+
+        </div><!-- /.row -->
+
+
+    </div>
+{% endblock %}
+
+{% block content %}
+    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+
+    <div class="panel-group" id="accordion">
+
+        {% csrf_token %}
+        {% for k,v in  ads_content.content.items %}
+            <div class="panel panel-default">
+                <div class="panel-heading ads_site_panel" style="height: 65px;">
+                    <h4 class="panel-title">
+                        <div class="input-group">
+                            <span class="input-group-addon">广告位置</span>
+                            <select name="ads_site_name" class="selectpicker " title="广告位" data-actions-box="true">
+                                {% for i in ads_site %}
+                                    {% if i == k %}
+                                        <option selected value="{{ i }}">{{ i }}</option>
+                                    {% else %}
+                                        <option value="{{ i }}">{{ i }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+
+                            <button type="button" class="btn btn-success show_info" style="margin-left: 10px">编辑该广告
+                            </button>
+                            <button type="button" class="btn btn-success  copy_ad_site " style="margin-left: 10px">复制
+                            </button>
+                            <button type="button" class="btn btn-danger del_ads" style="margin-left: 10px">删除该广告
+                            </button>
+                            <button type="button" class="btn btn-info show_ads_json" style="margin-left: 10px">
+                                显示该广告位位置json
+                            </button>
+                        </div>
+
+                    </h4>
+                </div>
+                <div class="panel-collapse collapse">
+                    <div class="panel-body ">
+                        <div class="col-sm-6 col-md-6 col-lg-9">
+
+
+                            {% for n,va in v.items %}
+                                <div class="form-group">show_ads_json
+                                    {% if n == "ad_sources" %}
+                                        <label><h3>广告ID</h3></label>
+                                        <button type="button" class="btn btn-sm btn-primary add_ad_source "><i
+                                                class="fa fa-plus">添加</i>
+                                        </button>
+                                        {% for ad_info in va %}
+                                            <div class="panel panel-info">
+                                                <div class="panel-heading ads_site_panel" style="height: 50px;">
+                                                    <h4 class="panel-title">
+
+                                                        <label style="color: #0c0c0c">weights:</label><span
+                                                            class="ad_source_t"
+                                                            t="weights">{{ ad_info.weights }}</span>
+                                                        <label style="color: #0c0c0c">name:</label><span
+                                                            class="ad_source_t"
+                                                            t="
+">{{ ad_info.source_name }}</span>
+                                                        <label style="color: #0c0c0c">id:</label><span
+                                                            class="ad_source_t" t="id">{{ ad_info.id }}</span>
+                                                        <label style="color: #0c0c0c">type:</label><span
+                                                            class="ad_source_t"
+                                                            t="format">{{ ad_info.format }}</span>
+
+                                                        <button type="button"
+                                                                class="btn btn-success btn-sm show_info"
+                                                                style="margin-left: 10px">编辑
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-success btn-sm copy_ads_source">复制
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-danger btn-sm del_ads_source">删除
+                                                        </button>
+
+
+                                                    </h4>
+                                                </div>
+
+                                                <div class="panel-collapse collapse">
+                                                    <div class="panel-body">
+                                                        <div class="col-sm-6 col-md-6 col-lg-11 pull-right">
+                                                            <!-- ad_source 内容-->
+
+
+
+
+                                                            <div class="form-group">
+                                                                <label>source_name</label>
+                                                                <select name="source_name" class=" cus_ad_source"
+                                                                        title="source_name"
+                                                                        data-actions-box="true">
+                                                                    <option value="fb"
+                                                                            {% if ad_info.source_name == "fb" %}selected{% endif %}>
+                                                                        fb
+                                                                    </option>
+                                                                    <option value="admob"
+                                                                            {% if ad_info.source_name == "admob" %}selected{% endif %}>
+                                                                        admob
+                                                                    </option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label>weights</label>
+                                                                <input name="weights"
+                                                                       class="form-control cus_ad_source"
+                                                                       placeholder="weights"
+                                                                       value="{{ ad_info.weights }}">
+                                                            </div>
+
+
+                                                            <div class="form-group">
+                                                                <label>format</label>
+                                                                <select name="format" class=" cus_ad_source"
+                                                                        title="format"
+                                                                        data-actions-box="true">
+                                                                    <option value="banner"
+                                                                            {% if ad_info.format == "banner" %}selected{% endif %}>
+                                                                        banner
+                                                                    </option>
+                                                                    <option value="interstitial"
+                                                                            {% if ad_info.format == "interstitial" %}selected{% endif %}>
+                                                                        interstitial
+                                                                    </option>
+                                                                    <option value="native"
+                                                                            {% if ad_info.format == "native" %}selected{% endif %}>
+                                                                        native
+                                                                    </option>
+                                                                    <option value="rewarded"
+                                                                            {% if ad_info.format == "rewarded" %}selected{% endif %}>
+                                                                        rewarded
+                                                                    </option>
+                                                                    <option value="open"
+                                                                            {% if ad_info.format == "open" %}selected{% endif %}>
+                                                                        open
+                                                                    </option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label>id</label>
+                                                                <input name="id" class="form-control cus_ad_source"
+                                                                       placeholder="id"
+                                                                       value="{{ ad_info.id }}">
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label>cache_time</label>
+                                                                <input name="cache_time"
+                                                                       class="form-control cus_ad_source"
+                                                                       placeholder="cache_time"
+                                                                       value="{{ ad_info.cache_time }}">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>close_size</label>
+                                                                <input name="close_size"
+                                                                       class="form-control cus_ad_source"
+                                                                       placeholder="close_size"
+                                                                       value="{{ ad_info.close_size }}">
+                                                            </div>
+
+                                                            <div class="form-group">
+                                                                <label>timeout</label>
+                                                                <input name="timeout"
+                                                                       class="form-control cus_ad_source"
+                                                                       placeholder="timeout"
+                                                                       value="{{ ad_info.timeout }}">
+                                                            </div>
+
+
+                                                            <!-- ad_control 内容-->
+
+                                                            <div class="form-group">
+                                                                <label><h4>native_control</h4></label>
+                                                                <div class="btn-group btn-group-xs" role="group"
+                                                                     style="margin-top: 5px;">
+                                                                    <button type="button"
+                                                                            class="btn btn-info ads-enable">enable
+                                                                    </button>
+                                                                    <button type="button"
+                                                                            class="btn btn-danger ads-disable">
+                                                                        disable
+                                                                    </button>
+
+                                                                </div>
+                                                                <div class="{% if not ad_info.native_control %}hidden {% endif %} cus_ad_control"
+                                                                     style="margin-left: 80px">
+                                                                    <div class="form-group">
+                                                                        <label>close_ad_time</label>
+                                                                        <input name="close_ad_time"
+                                                                               class="form-control "
+                                                                               placeholder="close_ad_time"
+                                                                               value="{{ ad_info.native_control.close_ad_time }}">
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label>style</label>
+                                                                        <input name="style"
+                                                                               class="form-control "
+                                                                               placeholder="style"
+                                                                               value="{{ ad_info.native_control.style }}">
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>skip_range</label>
+                                                                        <input name="skip_range" class="form-control"
+                                                                               placeholder="skip_range"
+                                                                               value="{{ ad_info.native_control.skip_range }}">
+                                                                    </div>
+
+                                                                    <div class="checkbox">
+                                                                        <label>
+                                                                            <input name="icon"
+                                                                                   type="checkbox"
+                                                                                   {% if ad_info.native_control.icon %}checked="checked"{% endif %}>icon
+                                                                        </label>
+                                                                    </div>
+
+                                                                    <div class="checkbox">
+                                                                        <label>
+                                                                            <input name="title"
+                                                                                   type="checkbox"
+                                                                                   {% if ad_info.native_control.icon %}checked="checked"{% endif %}>title
+                                                                        </label>
+                                                                    </div>
+
+                                                                    <div class="checkbox">
+                                                                        <label>
+                                                                            <input name="desc"
+                                                                                   type="checkbox"
+                                                                                   {% if ad_info.native_control.desc %}checked="checked"{% endif %}>desc
+                                                                        </label>
+                                                                    </div>
+
+                                                                    <div class="checkbox">
+                                                                        <label>
+                                                                            <input name="img" type="checkbox"
+                                                                                   {% if ad_info.native_control.img %}checked="checked"{% endif %}>img
+                                                                        </label>
+                                                                    </div>
+
+                                                                    <div class="checkbox">
+                                                                        <label>
+                                                                            <input name="cta" type="checkbox"
+                                                                                   {% if ad_info.native_control.cta %}checked="checked"{% endif %}>cta
+                                                                        </label>
+                                                                    </div>
+
+                                                                    <div class="checkbox">
+                                                                        <label>
+                                                                            <input name="auto_skip" type="checkbox"
+                                                                                   {% if ad_info.native_control.auto_skip %}checked="checked"{% endif %}>auto_skip
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <label>{{ n }}</label>
+                                        <input name="{{ n }}" class="form-control out_1" placeholder="{{ n }}"
+                                               value="{{ va }}" }}>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="s_ads_json" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel"></h4>
+                </div>
+                <div class="modal-body">
+                    <textarea name="" id="json_ta" cols="30" rows="10"
+                              style="margin: 0px;width: 100%;height: 700px;"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+    <div class="cus_ss hidden">
+        <option value="">----------</option>
+        {% for i in ads_site %}
+            <option value="{{ i }}">{{ i }}</option>
+        {% endfor %}
+
+    </div>
+    <div class="panel panel-info hidden init_ad_source">
+        <div class="panel-heading ads_site_panel" style="height: 50px;">
+            <h4 class="panel-title"><label style="color: #0c0c0c">weights:</label><span class="ad_source_t"
+                                                                                         t="weights"></span> <label
+                    style="color: #0c0c0c">name:</label><span class="ad_source_t" t="source_name">admob</span> <label
+                    style="color: #0c0c0c">id:</label><span class="ad_source_t" t="id"></span> <label
+                    style="color: #0c0c0c">format:</label><span class="ad_source_t" t="format"></span>
+                <button type="button" class="btn btn-success btn-sm show_info" style="margin-left: 10px">编辑</button>
+                <button type="button" class="btn btn-success btn-sm copy_ads_source">复制</button>
+                <button type="button" class="btn btn-danger btn-sm del_ads_source">删除</button>
+            </h4>
+        </div>
+        <div class="panel-collapse in" style="height: auto;">
+            <div class="panel-body">
+                <div class="col-sm-6 col-md-6 col-lg-11 pull-right">                    <!-- ad_source 内容-->
+
+                    <div class="form-group"><label>source_name</label> <select name="source_name" class=" cus_ad_source"
+                                                                               title="source_name"
+                                                                               data-actions-box="true">
+                        <option selected="" value="fb"> fb</option>
+                        <option selected="" value="admob"> admob</option>
+                    </select></div>
+                    <div class="form-group"><label>weights</label> <input name="weights"
+                                                                           class="form-control cus_ad_source"
+                                                                           placeholder="weights"></div>
+                    <div class="form-group"><label>format</label> <select name="format" class=" cus_ad_source"
+                                                                             title="format" data-actions-box="true">
+                        <option selected="" value="banner">banner</option>
+                        <option selected="" value="interstitial">interstitial</option>
+                        <option selected="" value="native">native</option>
+                        <option selected="" value="rewarded">rewarded</option>
+                        <option selected="" value="open">open</option>
+                    </select></div>
+                    <div class="form-group"><label>id</label> <input name="id" class="form-control cus_ad_source"
+                                                                        placeholder="id"></div>
+                    <div class="form-group"><label>cache_time</label> <input name="cache_time"
+                                                                             class="form-control cus_ad_source"
+                                                                             placeholder="cache_time"></div>
+                    <div class="form-group"><label>close_size</label> <input name="close_size"
+                                                                             class="form-control cus_ad_source"
+                                                                             placeholder="close_size"></div>
+                    <div class="form-group"><label>timeout</label> <input name="timeout"
+                                                                                class="form-control cus_ad_source"
+                                                                                placeholder="timeout"></div>
+                    <!-- ad_control 内容-->
+                    <div class="form-group"><label><h4>native_control</h4></label>
+                        <div class="btn-group btn-group-xs" role="group" style="margin-top: 5px;"><label
+                                class="bui-switch-label bui-switch-anim"><input type="checkbox"  cus="switch"/><i
+                                class="bui-switch"></i></label></div>
+                        <div class=" cus_ad_control hidden" style="margin-left: 80px">
+                            <div class="form-group"><label>close_ad_time</label> <input name="close_ad_time"
+                                                                                        class="form-control"
+                                                                                        placeholder="close_ad_time">
+                            </div>
+                            <div class="form-group"><label>style</label> <input name="style" class="form-control "
+                                                                                placeholder="style"></div>
+                            <div class="form-group"><label>skip_range</label> <input name="skip_range"
+                                                                                     class="form-control"
+                                                                                     placeholder="skip_range"></div>
+
+                            <div class="checkbox"><label> <input name="icon" type="checkbox" checked="checked">icon
+                            </label></div>
+                            <div class="checkbox"><label> <input name="title" type="checkbox" checked="checked">title
+                            </label></div>
+                            <div class="checkbox"><label> <input name="desc" type="checkbox" checked="checked">desc
+                            </label></div>
+                            <div class="checkbox"><label> <input name="img" type="checkbox" checked="checked">img
+                            </label></div>
+                            <div class="checkbox"><label> <input name="cta" type="checkbox" checked="checked">cta
+                            </label></div>
+                            <div class="checkbox"><label> <input name="auto_skip" type="checkbox" checked="checked">auto_skip
+                            </label></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{% block extrabody %}
+    <script type="text/javascript">
+
+
+        //设置图表
+
+        $(function () {
+                //init_ad_site
+                var int_field = ['weights', 'cache_time', 'close_ad_time', 'timeout','close_size']
+                var float_field = ['skip_range', 'style']
+
+                var required_field = ['weights', 'type', 'id', 'cache_time', 'timeout', 'close_ad_time', 'style', 'skip_range','close_size']
+
+                function init_ad_site() {
+                    var panel_h = $('<div class="panel panel-default"></div>')
+                    var p_h_h = $('<div class="panel-heading ads_site_panel" style="height: 65px;"></div>')
+                    var p_t_h = $('<h4 class="panel-title"></h4>')
+                    p_t_h.append(init_ad_site_input())
+                    p_h_h.append(p_t_h)
+                    panel_h.append(p_h_h)
+                    panel_h.append(init_panel_body())
+                    return panel_h
+                }
+
+                function init_panel_body() {
+                    var d = $('<div class="col-sm-6 col-md-6 col-lg-9"></div>')
+                    //d.append($('<div class="form-group"><label>used_days</label> <input name="used_days" class="form-control out_1" placeholder="used_days"=""></div>'))
+                    //d.append($('<div class="form-group"><label>interval_times</label> <input name="interval_times" class="form-control out_1" placeholder="interval_times"></div>'))
+                    //d.append($('<div class="form-group"><label>interval_time</label> <input name="interval_time" class="form-control out_1" placeholder="interval_time"></div>'))
+                    //d.append($('<div class="form-group"><label class="no_need">showtime</label> <input name="showtime" class="form-control out_1" placeholder="showtime"></div>'))
+                    //d.append($('<div class="form-group"><label class="no_need">clicktime</label> <input name="clicktime" class="form-control out_1" placeholder="clicktime"></div>'))
+                    var ad_source_h = $('<div class="form-group"><label><h3>ad_sources</h3></label><button type="button" class="btn btn-sm btn-primary add_ad_source "><i class="fa fa-plus">添加</i></button><div>')
+                    d.append(ad_source_h)
+                    var panel_body = $('<div class="panel-body "></div>')
+                    panel_body.append(d)
+                    var panel_collapse = $('<div class="panel-collapse collapse" style="height: auto;"></div>')
+                    panel_collapse.append(panel_body)
+                    return panel_collapse
+
+                }
+
+                function init_ad_site_input() {
+                    var input_g_h = $('<div class="input-group"><span class="input-group-addon">广告位置</span></div>')
+                    var sel_h = $('<select name="ads_site_name" class="selectpicker"  title="广告位" data-actions-box="true"><select/>')
+                    var ads_site_ss = $(".cus_ss").children().clone()
+                    sel_h.append(ads_site_ss)
+                    var sed_ad_site_l = get_all_ads_se()
+                    sel_h.children().each(function () {
+                        if ($.inArray($(this).text(), sed_ad_site_l) >= 0) {
+                            $(this).attr("disabled", "disabled")
+                        } else {
+                            $(this).removeAttr("disabled")
+                        }
+                    })
+                    input_g_h.append(sel_h)
+                    input_g_h.append($('<button type="button" class="btn btn-success show_info" style="margin-left: 10px">编辑该广告</button>'))
+                    input_g_h.append($('<button type="button" class="btn btn-success copy_ad_site" style="margin-left: 10px">复制</button>'))
+                    input_g_h.append($('<button type="button" class="btn btn-danger del_ads" style="margin-left: 10px">删除该广告</button>'))
+                    input_g_h.append($('<button type="button" class="btn btn-info show_ads_json" style="margin-left: 10px">显示该广告位位置json</button>'))
+                    sel_h.selectpicker({"width": 250,})
+                    ads_init_block()
+                    return input_g_h
+                }
+
+                // add ad site
+                $("body").on("click", "button.top_add_ad_site", function () {
+                    $("#accordion").prepend(init_ad_site())
+
+                })
+
+                $("body").on("click", "button.copy_ad_site", function () {
+                    var panel_body_dom = $(this).parents('.ads_site_panel').next().clone()
+                    var panel_h = $('<div class="panel panel-default"></div>')
+                    var p_h_h = $('<div class="panel-heading ads_site_panel" style="height: 65px;"></div>')
+                    var p_t_h = $('<h4 class="panel-title"></h4>')
+                    p_t_h.append(init_ad_site_input())
+                    p_h_h.append(p_t_h)
+                    panel_h.append(p_h_h)
+                    panel_h.append(panel_body_dom)
+                    $("#accordion").prepend(panel_h)
+                })
+
+
+                //ad_source enable/disable
+                $("body").on("click", "button.show_info", function () {
+                    $(this).parents('.ads_site_panel').next('.panel-collapse').collapse('toggle')
+                });
+                //ad_control enable/disable
+                $("body").on("change", "[cus='switch']", function () {
+                    if ($(this).is(":checked")) {
+                        $(this).parent().parent().next('div').removeClass('hidden')
+                    } else {
+                        $(this).parent().parent().next('div').addClass('hidden')
+                    }
+                });
+                //提示框
+                $("body").on("click", "button.del_ads", function () {
+                    var result = confirm('是否删除！');
+                    if (result) {
+                        $(this).parents('.panel-default').remove()
+                        alert('删除成功！')
+                    }
+                });
+
+                $("body").on("click", "button.del_ads_source", function () {
+                    var result = confirm('是否删除！');
+                    if (result) {
+                        $(this).parents('.panel-info').remove()
+                        alert('删除成功！')
+                    }
+                });
+
+                $("body").on("click", "button.copy_ads_source", function () {
+                    var clone_dom = $(this).parents('.panel-info').clone()
+                    $(this).parents('.panel-info').after(clone_dom)
+
+                });
+
+                function get_ads_site(obj) {
+                    return obj.find("select[name='ads_site_name']").val()
+
+                }
+
+                function add_to_list(v, arr) {
+                    arr.push(v)
+                    return arr
+
+                }
+
+                function add_to_dict(k, v, dic, ad_site = '') {
+                    if (typeof (v) === "string") {
+                        v = $.trim(v)
+                    }
+                    if (v === '' && $.inArray(k, required_field) >= 0) {
+                        alert("广告位:" + ad_site + "值:" + k + "为空")
+                        throw SyntaxError();
+                    }
+                    // 转换值的类型
+                    if ($.inArray(k, int_field) >= 0 && v !== '') {
+                        v = s_to_i(k, v, ad_site)
+                    }
+                    if ($.inArray(k, float_field) >= 0 && v !== '') {
+                        v = s_to_f(k, v, ad_site)
+                    }
+                    if (v || typeof (v) === 'boolean' || v === 0) {
+                        dic[k] = v
+                    }
+                    return dic
+                }
+
+                function get_items_json(obj, ad_site_name) {
+                    var ret = {}
+                    var item_json = {}
+
+
+                    // out1
+                    obj.next().find("[name].out_1").each(function () {
+                        if ($(this).attr("type") === "checkbox") {
+                            add_to_dict($(this).attr("name"), $(this).is(":checked"), item_json, ad_site_name)
+                        } else {
+                            add_to_dict($(this).attr("name"), $(this).val(), item_json, ad_site_name)
+                        }
+
+                    })
+
+                    var ad_sources = []
+                    //
+                    obj.next().find('.panel-info').each(function () {
+                        var i_info = {}
+                        $(this).find("[name].cus_ad_source").each(function () {
+                            console.log("ad_source:", $(this).attr("name"), $(this).val())
+                            if ($(this).attr("type") === "checkbox") {
+                                add_to_dict($(this).attr("name"), $(this).is(":checked"), i_info, ad_site_name)
+                            } else {
+                                add_to_dict($(this).attr("name"), $(this).val(), i_info, ad_site_name)
+                            }
+                        })
+                        var ad_control_dom = $(this).find('.cus_ad_control')
+                        var native_control = {}
+                        if (!ad_control_dom.hasClass('hidden')) {
+                            ad_control_dom.find("[name]").each(function () {
+                                if ($(this).attr("type") === "checkbox") {
+                                    add_to_dict($(this).attr("name"), $(this).is(":checked"), native_control, ad_site_name)
+                                } else {
+                                    add_to_dict($(this).attr("name"), $(this).val(), native_control, ad_site_name)
+                                }
+                            })
+                        }
+                        if (JSON.stringify(native_control) !== "{}") {
+
+                            add_to_dict("native_control", native_control, i_info)
+                        }
+                        ;
+                        add_to_list(i_info, ad_sources)
+
+
+                    })
+                    if (ad_sources.length === 0) {
+                        alert("广告位:" + ad_site_name + "的[ad_sources]为空");
+                        throw SyntaxError();
+
+                    }
+                    item_json['ad_sources'] = ad_sources
+                    ret[ad_site_name] = item_json
+                    return ret
+
+                }
+
+
+                $("body").on("change", 'input[name="id"]', function () {
+                    $(this).parents('.panel-info').find("span[t=id]").text($(this).val())
+
+                })
+
+                $("body").on("change", 'select[name="source_name"]', function () {
+                    $(this).parents('.panel-info').find("span[t=source_name]").text($(this).val())
+
+                })
+
+                $("body").on("change", 'input[name="weights"]', function () {
+                    $(this).parents('.panel-info').find("span[t=weights]").text($(this).val())
+
+                })
+
+                $("body").on("change", 'select[name="format"]', function () {
+                    $(this).parents('.panel-info').find("span[t=format]").text($(this).val())
+
+                })
+
+                //显示json
+                $("body").on("click", "button.show_ads_json", function () {
+                    var obj = $(this).parents('.ads_site_panel')
+                    var ad_site_name = get_ads_site(obj)
+                    if (!ad_site_name) {
+                        alert("未选择广告位置")
+                        throw SyntaxError();
+                    }
+                    var json_data = get_items_json(obj, ad_site_name)
+                    json_data = JSON.stringify(json_data, null, 2)
+                    set_to_model(json_data, "广告位置:" + ad_site_name)
+
+                });
+
+                function set_to_model(json_data, title) {
+                    $('#json_ta').text(json_data)
+                    $('#myModalLabel').text(title)
+                    $('#s_ads_json').modal("show")
+                }
+
+                function get_all_data() {
+                    var f_ret = {}
+                    var ret = {}
+                    $('.ads_site_panel').each(function () {
+                        var ad_site_name = get_ads_site($(this))
+                        if (ad_site_name) {
+                            var json_data = get_items_json($(this), ad_site_name)
+                            add_to_dict(ad_site_name, json_data[ad_site_name], ret)
+                        }
+
+                    })
+                    var all_show_t_l = $('#ad_show_limit').val()
+                    var all_click_t_l = $('#ad_click_limit').val()
+                    if (all_show_t_l === "" || all_show_t_l === null || all_show_t_l === undefined) {
+                        alert("ad_show_limit 为空")
+                        throw SyntaxError();
+                    }
+                    if (all_click_t_l === "" || all_click_t_l === null || all_click_t_l === undefined) {
+                        alert("ad_click_limit 为空")
+                        throw SyntaxError();
+                    }
+                    all_show_t_l = s_to_i("ad_show_limit", all_show_t_l)
+                    all_click_t_l = s_to_i("ad_click_limit", all_click_t_l)
+
+                    f_ret['ad_show_limit'] = all_show_t_l
+                    f_ret['ad_click_limit'] = all_click_t_l
+                    f_ret['content'] = ret
+                    return f_ret
+                }
+
+                function s_to_i(t, d, ad_site = '') {
+                    var r = Number(d)
+                    if (!r && r !== 0) {
+                        alert('广告位置[' + ad_site + ']' + t + "的值必须是数字")
+                        throw SyntaxError();
+                    }
+                    return r
+                }
+
+                function s_to_f(t, d, ad_site = '') {
+                    console.log('kais' + t + d)
+                    var r = parseFloat(d)
+                    if (!r && r !== 0) {
+                        alert('广告位置[' + ad_site + ']' + t + "的值必须是浮点")
+                        throw SyntaxError();
+                    }
+                    return r
+                }
+
+                //显示所有json
+                $("body").on("click", "button.top_show_json", function () {
+
+                    var all_items = get_all_data()
+
+
+                    set_to_model(JSON.stringify(all_items, null, 2), "总体json")
+                });
+                $("body").on("click", "button.save_json", function () {
+                    var r_url = "{{ breadcrumbs.1.url }}"
+                    var pkg_id = getQueryVariable("_p_pkg__exact")
+                    var ctr_v = $("#country-select").val()
+                    var min_v = $("#min_v").val()
+                    var max_v = $("#max_v").val()
+                    var is_a = $("#is_active").is(":checked")
+                    console.log("is_a")
+                    console.log(is_a)
+                    var ret = get_all_data()
+
+                    var req_d = {"ctr_v": ctr_v, 'min_v': min_v, "max_v": max_v, "ret": ret, "is_a": is_a, "pkg_id": pkg_id}
+
+                    if (!ctr_v || !min_v || !max_v) {
+                        alert('参数缺失 !')
+                        return
+                    }
+                    var user = {{ admin_view.user.id }}
+                        $.ajax({
+                            url: '/ads/add/',
+                            contentType: "application/json;charset=utf-8",
+                            type: "post",
+                            dataType: "json",
+                            data: JSON.stringify(req_d),
+                            beforeSend: function (xhr, settings) {
+                                xhr.setRequestHeader("X-CSRFToken", $.getCookie('csrftoken'))
+                            },
+                            complete: function () {
+
+                            },
+                            success: function (data) {
+                                console.log(data)
+                                if (data.code < 0) {
+                                    alert(data.message)
+                                }
+                                if (data.code === 0) {
+                                    alert('保存成功！')
+                                    window.location.href = r_url
+                                }
+
+                            }
+                        });
+
+                })
+
+
+                //广告位不能选择一样的
+                function get_all_ads_se() {
+                    //获取当前所有被选择的广告位置
+                    var ads_site_se_li = []
+
+                    $("select[name='ads_site_name']").each(function () {
+                        ads_site_se_li.push($(this).val())
+                    })
+
+                    return ads_site_se_li
+                };
+
+                function ads_init_block() {
+                    //让广告位置互斥
+                    var ads_site_se_li = get_all_ads_se()
+
+                    $("select[name='ads_site_name']").each(function () {
+                        var se_val = $(this).val()
+                        $(this).children().each(function () {
+                            if ($(this).text() != se_val && $.inArray($(this).text(), ads_site_se_li) >= 0) {
+                                $(this).attr("disabled", "disabled")
+                            } else {
+                                $(this).removeAttr("disabled")
+                            }
+                        })
+                        if (se_val) {
+                            $(this).prop('disabled', true);
+                        }
+
+                        $(this).selectpicker('refresh');
+
+                    })
+                };
+
+                $("body").on("change", "select[name='ads_site_name']", function () {
+                    ads_init_block()
+                });
+
+                // 初始化 ad_source
+                function get_checkbox(name) {
+                    return $('<div class="checkbox"><label><input type="checkbox" name="' + name + '"class="cus_ad_source" >' + name + '</label></div>')
+
+                }
+
+                function get_input(name) {
+                    $('<div class="form-group"> <label>' + name + '</label><input name="' + name + '" class="form-control cus_ad_source" placeholder="' + name + '"></div>')
+                }
+
+                function init_ad_source_html() {
+                    var s_html = $(".init_ad_source").clone()
+                    s_html.removeClass('hidden')
+                    s_html.removeClass('init_ad_source')
+                    return s_html
+                }
+
+                //---------------------------
+                // add ad source
+                $("body").on("click", "button.add_ad_source", function () {
+                    $(this).after(init_ad_source_html())
+                })
+
+
+                $('#collapseOne').on('show.bs.collapse', function () {
+                    {#console.log(this.parent().children('.glyphicon'))#}
+                })
+
+
+                $(".selectpicker").selectpicker({
+                    "width": 250,
+                });
+                ads_init_block()
+
+                function getQueryVariable(variable) {
+                    var query = window.location.search.substring(1);
+                    var vars = query.split("&");
+                    for (var i = 0; i < vars.length; i++) {
+                        var pair = vars[i].split("=");
+                        if (pair[0] === variable) {
+                            return pair[1];
+                        }
+                    }
+                    return (false);
+                }
+
+
+            }
+        );
+
+
+    </script>
+    <script type="text/javascript" src="/static/xadmin/vendor/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+
+    <script src="/static/xadmin/vendor/bootstrap-select/js/bootstrap-select.js"></script>
+    <script type="text/javascript" src="/static/xadmin/vendor/datatables.net-buttons/js/buttons.html5.min.js"></script>
+    <script type="text/javascript"
+            src="/static/xadmin/vendor/datatables.net-buttons-bs/js/buttons.bootstrap.min.js"></script>
+{% endblock %}
+
+{% block extrahead %}
+    <link href="/static/xadmin/vendor/bootstrap-datepicker/css/datepicker.css" type="text/css" media="screen"
+          rel="stylesheet">
+    <link href="/static/xadmin/css/xadmin.main.css" type="text/css" media="screen" rel="stylesheet">
+    <link href="/static/xadmin/vendor/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet"/>
+{% endblock %}
