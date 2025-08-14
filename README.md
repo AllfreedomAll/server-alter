@@ -235,13 +235,10 @@ docker run -p 8000:8000 server-alter
 3. **使用Nginx**
 ```nginx
 server {
-    listen 80;
-    server_name your-domain.com;
-    
+    listen 8001;
     location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
+        include uwsgi_params;
+        uwsgi_pass 127.0.0.1:8071;
     }
 }
 ```
